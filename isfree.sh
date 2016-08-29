@@ -1,5 +1,5 @@
 #!/bin/bash
-#This script is aimed at finding out whether you have installed one or more non-free/libre Arch 
+#This script is fundamentally aimed at finding out whether you have installed one or more non-free/libre Arch 
 #Linux packages. It takes Parabola's blacklists to perform the test. These blacklists may
 #be found in: 
 #  https://git.parabola.nu/blacklist.git/plain/blacklist.txt 
