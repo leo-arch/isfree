@@ -102,6 +102,22 @@ non-free/libre packages)"
    echo -e "${yellow}            -h | --help$nc (show this help and exit)"
    echo -e "${cyan}Note:$nc In case you are interested in a 100% free/libre Linux you may want to take \
 a look at Parabola GNU/Linux-libre's wiki (https://wiki.parabola.nu/Main_Page)\n"
+#Here's GNU's explanation as to why Arch isn't entirely free, and thereby not endorsed by them:
+#"Arch has the two usual problems: there's no clear policy about what software can be included, 
+#and nonfree blobs are shipped with their kernel, Linux. Arch also has no policy about not 
+#distributing nonfree software through their normal channels." (http://www.gnu.org/distros/common-distros.en.html)
+#Now, the question is: which are these blobs exactly? And am I using them? Are they really 
+#loaded by my kernel?
+
+#The linux-libre kernel, just as the corresponding firmware and headers, could be found in the AUR
+#As to the firmware issue, you can start by looking at the firmware needed (=loaded?) by your 
+#kernel by running the following command:
+# $ modinfo -F firmware `lsmod | tail -n +2 | cut -f 1 -d ' '`
+#When running this command it shows a certain amount of firmware (=~10). Nonetheless, neither
+#of them are listed by dmesg. So, are they really loaded by my kernel?  
+# However, I still need to figure out which firmware is free/libre and which is not.
+#This thread in the Arch forum sheds some light on this issue:
+# https://bbs.archlinux.org/viewtopic.php?id=169661
 }
 
 ###BODY####
@@ -113,7 +129,7 @@ case $1 in
    -o|--official) 
       get_blacklist
       echo -n "Getting installed official packages... "
-      inst_packs=( $(pacman -Qn | awk '{print $1}') ) && echo -e "${green}Done$nc" && sleep 1
+      inst_packs=( $(pacman -Qn | grep -v parabola | awk '{print $1}') ) && echo -e "${green}Done$nc" && sleep 1
       echo -e "Non-free/libre packages installed in your system:${nc}\n" 
       counter=0; fix_doc=0; nonfree=0; semifree=0; technical=0; no_desc=0
       for (( i=0;i<${#inst_packs[@]};i++ )); do
