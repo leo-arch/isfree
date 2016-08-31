@@ -15,6 +15,8 @@
 #More Parabola's blacklists:
 #emulator-blacklist: https://git.parabola.nu/blacklist.git/plain/your-freedom_emu-blacklist.txt
 
+#NOTE: at the moment I use calc for some math operations. Replace by a built-in command.
+
 ###COLORS###
 white="\033[1;37m"
 red="\033[1;31m"
@@ -62,7 +64,7 @@ function blacklist_line ()
    esac
 #   echo "$bl_line" | grep --color -P '(?<=\[).*(?=\] .?)'
    #this is a very precarious attempt to minimally parse the blacklist, but it works.
-   echo "$bl_line" | sed 's/::::/ /g'| sed 's/:::/ /g' | grep --color "\[technical\]\|\[nonfree\]\|\[semifree\]\|\[FIXME:description\]\|\[uses-nonfree\]\|\[use-nonfree\]\|\[branding\]\|\[recommends-nonfree\]\|\[trademark-issue\]"
+   echo "$bl_line" | grep -o "\[.*" | sed 's/::::/ /g'| sed 's/:::/ /g' | grep --color "\[technical\]\|\[nonfree\]\|\[semifree\]\|\[FIXME:description\]\|\[uses-nonfree\]\|\[use-nonfree\]\|\[branding\]\|\[recommends-nonfree\]\|\[trademark-issue\]"
    export GREP_COLOR='0'
 }
 
@@ -88,21 +90,26 @@ function parabola_repo_download ()
    tar xvfz /tmp/libre.db -C /tmp/libre >/dev/null
    mapfile -t libre_repo < <(ls /tmp/libre)
    #echo ${libre_repo[@]}
+   for (( j=0;j<${#libre_repo[@]};j++ )); do
+      echo "${libre_repo[$j]}" >> /tmp/libre_repo.txt
+   done
 }
 
-function parabola_replacement ()
+function free_alternative ()
 {
-   nf_pack=$1
-#   echo $nf_pack
-   for (( i=0;i<${#libre_repo[@]};i++ )); do
-      if [[ $(echo ${libre_repo[$i]} | grep "$nf_pack" | grep "parabola\|-libre") ]]; then
-#         echo "Yes"
-         echo "    Free/libre version: ${libre_repo[$i]}"
-      else :
-#         echo "No"
-#         echo "There seems to be no free/libre replacement for this package."
-      fi
-   done
+   inst_pack=$1
+   case $inst_pack in
+      firefox|chromium) inst_pack="icecat";;
+   esac   
+   pack="$(cat /tmp/parabola_bl.txt | grep -Ee ^${inst_pack}:[a-z])"
+   [[ ! ($pack == "" ) ]] && inst_pack="$(echo "$pack" | cut -d":" -f2)"
+   replace="$(cat /tmp/libre_repo.txt | grep -Ee "^${inst_pack}-[0-9]")"
+   if ! [[ $replace == ""  ]]; then 
+      echo -e "${magenta}    Free/libre alternative:$nc $replace"
+      replacement_counter=$((replacement_counter+1))
+   else
+      no_alternative[${#no_alternative[@]}]=${inst_pack}
+   fi	
 }
 
 function help ()
@@ -142,36 +149,32 @@ case $1 in
       get_blacklist
       parabola_repo_download
       echo -n "Getting installed official packages... "
-      #inst_packs=( $(pacman -Qn | grep -v parabola | awk '{print $1}') ) && echo -e "${green}Done$nc" && sleep 1
-      inst_packs=( $(pacman -Qn | awk '{print $1}') ) && echo -e "${green}Done$nc" && sleep 1
+      inst_packs=( $(pacman -Qn | grep -v parabola | awk '{print $1}') ) && echo -e "${green}Done$nc" && sleep 1
       echo -e "Non-free/libre packages installed in your system:${nc}\n" 
       counter=0; fix_doc=0; nonfree=0; semifree=0; technical=0; no_desc=0; replacement_counter=0
       for (( i=0;i<${#inst_packs[@]};i++ )); do
          if [[ $(cat /tmp/parabola_bl.txt | grep ^"${inst_packs[$i]}":) ]]; then
             counter=$((counter+1))
             blacklist_line ${inst_packs[$i]} $counter
-      #      parabola_replacement ${inst_packs[$i]} ${libre_repo[@]}
-            for (( j=0;j<${#libre_repo[@]};j++ )); do
-               if [[ $(echo ${libre_repo[$j]} | grep -Ee "^${inst_packs[$i]}-[0-9]" | grep -e "-linux\|parabola") ]]; then
-                  echo -e "${magenta}    Free/libre version:$nc ${libre_repo[$j]}"
-                  replacement_counter=$((replacement_counter+1))
-#               else :
-#                  echo "There seems to be no free/libre replacement for this package."
-               fi
-            done
+            free_alternative ${inst_packs[$i]}
          fi
       done
       [[ $counter -eq 0 ]] && echo -e "${green}You're free from non-free/libre official Arch packages!\nRichard loves you!$nc" && exit 0
       color_codes $nonfree $semifree $technical $fix_doc $no_desc
+      echo -e "\n${cyan}Packages with no free/libre alternatives (yet):$nc"
+      for (( i=0;i<${#no_alternative[@]};i++ )); do
+         echo -e "${white}$((i+1))$nc - ${no_alternative[$i]}"
+      done      
       echo -e "\n-------------"
-      echo -e "Total installed official packages: ${white}$(pacman -Qn | wc -l)$nc"
-      echo -e "${cyan}Non-free/libre$nc found packages:     ${cyan}$counter$nc"
-      echo -e "${magenta}Free/libre$nc versions found:         ${magenta}$replacement_counter ($(calc $replacement_counter*100/$counter | sed 's/\t//g')%)$nc"
+      total_packs=$(pacman -Qn | wc -l)
+      echo -e "Total installed official packages: ${white}$total_packs$nc"
+      echo -e "${cyan}Non-free/libre$nc found packages:     ${cyan}$counter ($(calc $counter*100/$total_packs | sed 's/\t//g' | sed 's/~//g' | cut -d"." -f1)% of total packages)$nc"
+      echo -e "${magenta}Free/libre$nc alternatives found:     ${magenta}$replacement_counter ($(calc $replacement_counter*100/$counter | sed 's/\t//g' | sed 's/~//g' | cut -d"." -f1)% of non-free/libre packages)$nc"
       echo -e "Free/libre official Arch packages: ${white}$(( (($(pacman -Q | wc -l)-counter)*100) / $(pacman -Q | wc -l) ))%$nc"
-      #allow showing possible replacements for found non-libre pacs from parabola's repos
       rm /tmp/parabola_bl.txt
       rm -f /tmp/libre.db
       rm -rf /tmp/libre
+      rm /tmp/libre_repo.txt
    ;;
    -a|--aur) 
       get_blacklist aur
@@ -216,19 +219,29 @@ case $1 in
       repo=$2
       repo_packs=( $(pacman -Sl $repo | awk '{print $2}') )
       get_blacklist
+      parabola_repo_download
       echo -e "Non-free/libre official Arch packages from ${white}$repo${nc} repository:${nc}\n"
-      counter=0; fix_doc=0; nonfree=0; semifree=0; technical=0; no_desc=0
+      counter=0; fix_doc=0; nonfree=0; semifree=0; technical=0; no_desc=0; replacement_counter=0
       for (( i=0;i<${#repo_packs[@]};i++ )); do
          if [[ $(cat /tmp/parabola_bl.txt | grep ^"${repo_packs[$i]}":) ]]; then
             counter=$((counter+1))
             blacklist_line ${repo_packs[$i]} $counter
+            free_alternative ${repo_packs[$i]}
          fi
       done
       [[ $counter -eq 0 ]] && echo -e "${green}$(echo $repo | tr '[:lower:]' '[:upper:]') is free from non-free/libre software!$nc" && exit 0
       color_codes $nonfree $semifree $technical $fix_doc $no_desc
+      echo -e "\n${cyan}Packages with no free/libre alternatives (yet):$nc"
+      for (( i=0;i<${#no_alternative[@]};i++ )); do
+         echo -e "${white}$((i+1))$nc - ${no_alternative[$i]}"
+      done
       echo -e "\n-------------"
-      echo -e "$white$(echo $repo | tr '[:lower:]' '[:upper:]')$nc: $counter/$(pacman -Sl $repo | wc -l) non-free/libre packages."
+      echo -e "$white$(echo $repo | tr '[:lower:]' '[:upper:]')$nc: ${cyan}$counter/$(pacman -Sl $repo | wc -l)$nc packages are ${cyan}non-free/libre$nc."
+      echo -e "${magenta}      $replacement_counter/$counter$nc non-free/libre packages have a ${magenta}free/libre$nc alternative."
       rm /tmp/parabola_bl.txt
+      rm -f /tmp/libre.db
+      rm -rf /tmp/libre
+      rm /tmp/libre_repo.txt
    ;;
    -p|--privacy) 
       get_blacklist privacy
@@ -280,15 +293,17 @@ case $1 in
      rm /tmp/parabola_bl.txt
    ;;   
    -v|--version) 
-      echo "IsFree version: 1.2 (Aug 29, 2016)"
+      echo "IsFree version: 1.3 (Aug 31, 2016)"
       echo "v1.1: AUR packages support was added."
       echo "v1.2: An option was added to inspect the system for privacy threatening software, and another one to list all the threating packs according to Parabola."
+      echo "v1.3: Every scan shows now the free/libre alternative package, if any."
       echo -e "By L. M. Abramovich\n"
    ;;
    
    #####Check an individual package####
    -*|--*) echo -e "${red}Error:$nc $1 is not a valid argument. Type ./isfree.sh -h for help." && exit 0;;
    *)
+      replacement_counter=0
       pack=$1
       pack="$(echo $pack | tr '[:upper:]' '[:lower:]')"
       if ! [[ $(pacman -Ss ^${pack}) ]]; then
@@ -296,13 +311,22 @@ case $1 in
          exit 0
       fi
       get_blacklist
+      parabola_repo_download
       if [[ $(cat /tmp/parabola_bl.txt | grep ^"${pack}":) ]]; then
-         echo -ne "${red}$pack is a non-free/libre package: $nc"
-         cat /tmp/parabola_bl.txt | grep ^${pack}:
+         echo -ne "${red}$pack is a non-free/libre package!$nc\n"
+         echo -ne "${white}Description:$nc "
+         export GREP_COLOR='1;36'         
+         cat /tmp/parabola_bl.txt | grep ^${pack}: | grep -o "\[.*" | grep --color "\[technical\]\|\[nonfree\]\|\[semifree\]\|\[FIXME:description\]\|\[uses-nonfree\]\|\[use-nonfree\]\|\[branding\]\|\[recommends-nonfree\]\|\[trademark-issue\]"
+         export GREP_COLOR='0'
+         free_alternative ${pack}
+         [[ $replacement_counter -eq 0 ]] && echo -e "${cyan}    No free/libre alternative for this package (yet).$nc"
       else
          echo -e "${green}$pack is a free/libre package!$nc"
       fi
       rm /tmp/parabola_bl.txt
+      rm -f /tmp/libre.db
+      rm -rf /tmp/libre
+      rm /tmp/libre_repo.txt
       exit 0
    ;;
 esac
