@@ -1,3 +1,2 @@
 # IsFree
-This little script is fundamentally aimed at finding out whether you have installed one or more non-free/libre Arch Linux packages, be it an official or an AUR package. It takes Parabola's blacklists to perform the test. Taking advantage of these 
-blacklists, I also added an option to scan the system for privacy threatening software. It's very basic, but it works.
+This script is mainly intended to find out whether there is some non-free/libre package (both official and from the AUR) in your Arch Linux installation. It uses Parabola's blacklists to perform the test. Taking advantage of these blacklists, I also added an option to scan the system for privacy threatening software. You can check entire repos or individual packages as well. Come on, give a smile to uncle RMS!
