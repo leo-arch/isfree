@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 #This script is intended to find out whether there is non-free/libre software in your Arch 
 #+Linux machine, and, if any, to suggest a free alternative. It uses Parabola's blacklists 
