@@ -5,8 +5,10 @@ This script is mainly intended to find out whether there is some non-free/libre 
 
 ## Installation
 
-    git clone https://github.com/leo-arch/isfree
+1. Clone or download the project files (**no compilation nor installation** is required)
 
-## Execution:
+        git clone https://github.com/leo-arch/isfree
 
-    cd isfree; ./isfree
+2. Execution:
+
+       cd isfree; ./isfree
