@@ -15,4 +15,4 @@ Update: Last version includes an option (-i) to check your system for systemd de
 
 2. Execution:
 
-       cd isfree; ./isfree
+       cd isfree; ./isfree [OPTIONS]
