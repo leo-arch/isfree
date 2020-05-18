@@ -4,7 +4,7 @@
 #+in your Arch Linux machine, and, if any, to suggest a free alternative. It uses 
 #+Parabola's blacklists to perform the tests.
 
-#Blacklists can be found in: 
+#Blacklists can be found at: 
 #  https://git.parabola.nu/blacklist.git/plain/blacklist.txt 
 #or, for the AUR blacklist: 
 #  https://git.parabola.nu/blacklist.git/plain/aur-blacklist.txt
@@ -54,8 +54,8 @@ nc=""
 
 PROG_NAME="IsFree"
 ME="isfree"
-VERSION="0.8.7-1"
-DATE="Sep, 2019"
+VERSION="0.8.8.2"
+DATE="May, 2020"
 AUTHOR="L. M. Abramovich"
 
 OFFICIAL_BLACKLIST="https://git.parabola.nu/blacklist.git/plain/blacklist.txt"
@@ -66,6 +66,10 @@ LIBRE_REPO="http://mirror.fsf.org/parabola/libre/os/$(uname -m)/libre.db"
 #NOTE: About the blacklists syntax:
 #original-package:[libre-replacement]:[ref]:[id]:short description, where 
 #+something within [] is optional.
+
+#Speed up the script by not using unicode
+LC_ALL=C
+LANG=C
 
 ###FUNCTIONS###
 
@@ -146,24 +150,24 @@ they fall short of being free, we consider them all equally unethical (...)\n"
 function get_blacklist ()
 {
 	if ! [[ -f $tmp_file ]]; then
-		if ! [[ $(type -P /bin/curl) ]]; then
+		if ! [[ $(type -P curl) ]]; then
 			echoerr "$ME: 'curl' not found"
 			exit 1
 		fi
 		case $1 in
 			aur)
 				echo -ne "${green}==> ${nc}Downloading Parabola's AUR blacklist... "
-				/bin/curl -s "$AUR_BLACKLIST" | /bin/sed 's/  //g' | /bin/grep -v ^'#' > "$tmp_file"
+				curl -s "$AUR_BLACKLIST" | sed 's/  //g' | grep -v ^'#' > "$tmp_file"
 			;;
 			privacy)
 				echo -ne "${green}==> ${nc}Downloading Parabola's privacy blacklist... "
-				/bin/curl -s "$PRIVACY_BLACKLIST" | /bin/sed 's/  //g' | /bin/grep -v ^'#' > "$tmp_file"
+				curl -s "$PRIVACY_BLACKLIST" | sed 's/  //g' | grep -v ^'#' > "$tmp_file"
 			;;
 			*)
 				echo -ne "${green}==> ${nc}Downloading Parabola's blacklist... "
-				/bin/curl -s "$OFFICIAL_BLACKLIST" | /bin/sed 's/  //g' | /bin/grep -v ^'#' > "$tmp_file"
+				curl -s "$OFFICIAL_BLACKLIST" | sed 's/  //g' | grep -v ^'#' > "$tmp_file"
 				# Add the AUR blacklist too in case of packages installed from some unofficial repo
-				/bin/curl -s "$AUR_BLACKLIST" | /bin/sed 's/  //g' | /bin/grep -v ^'#' >> "$tmp_file"
+				curl -s "$AUR_BLACKLIST" | sed 's/  //g' | grep -v ^'#' >> "$tmp_file"
 			;;
 		esac
 		if [[ $? -eq 0 ]]; then 
@@ -178,35 +182,35 @@ function get_blacklist ()
 function parabola_repo_download ()
 {
 	if ! [[ -f /tmp/libre_repo_pkgs ]]; then
-		if [[ $(/bin/grep "^\[libre\]" /etc/pacman.conf 2>/dev/null) ]]; then
+		if [[ $(grep "^\[libre\]" /etc/pacman.conf 2>/dev/null) ]]; then
 			echo -ne "${green}==> ${nc}Getting packages from [libre] repo... "
-			if /bin/pacman -Sl libre | awk '{print $2"-"$3}' > /tmp/libre_repo_pkgs; then
+			if pacman -Sl libre | awk '{print $2"-"$3}' > /tmp/libre_repo_pkgs; then
 				echo -e "${green}OK$nc"
 			fi
 			return 0
 		fi
 		echo -ne "${green}==> ${nc}Downloading Parabola's repository database... "
-		if ! [[ $(type -P /bin/wget) ]]; then 
+		if ! [[ $(type -P wget) ]]; then 
 			echoerr "\n$ME: 'wget' not found"
 			exit 1
 		fi
-		/bin/wget -qP /tmp "$LIBRE_REPO"
+		wget -qP /tmp "$LIBRE_REPO"
 		if [[ -f /tmp/libre.db ]]; then
 			echo -e "${green}OK$nc"
 		else
 			echoerr "Error downloading file"
 			exit 1
 		fi
-		! [[ -d /tmp/libre ]] && /bin/mkdir -p /tmp/libre
-		/bin/tar xvfz /tmp/libre.db -C /tmp/libre &>/dev/null
-		/bin/ls /tmp/libre > /tmp/libre_repo_pkgs
+		! [[ -d /tmp/libre ]] && mkdir -p /tmp/libre
+		tar xvfz /tmp/libre.db -C /tmp/libre &>/dev/null
+		ls /tmp/libre > /tmp/libre_repo_pkgs
 	fi
 }
 
 function blacklist_line ()
 {
 	pack=$1; counter=$2;
-	bl_line=$(/bin/grep "^${pack}:" "$tmp_file")
+	bl_line=$(grep "^${pack}:" "$tmp_file")
 	case "$bl_line" in
 		*\[technical\]*|*\[branding\]*) echo -ne "${white}$counter$nc) ${green}${pack}: $nc" && technical=$((technical+1));;
 		*\[nonfree\]*) echo -ne "${white}$counter$nc) ${red}${pack}: $nc" && nonfree=$((nonfree+1));;
@@ -217,10 +221,10 @@ function blacklist_line ()
 	#Get package description
 	if [[ $nocolor -eq 0 ]]; then
 		export GREP_COLOR='1;36'
-		/bin/awk -F':' '{print $5,$6,$7,$8}' <<< "$bl_line" | /bin/grep --color "\[technical\]\|\[branding\]\|\[nonfree\]\|\[semifree\]\|\[uses-nonfree\]\|\[recommends-nonfree\]\|\[FIXME description\]\|\[FIXME package\]"
+		awk -F':' '{print $5,$6,$7,$8}' <<< "$bl_line" | grep --color "\[technical\]\|\[branding\]\|\[nonfree\]\|\[semifree\]\|\[uses-nonfree\]\|\[recommends-nonfree\]\|\[FIXME description\]\|\[FIXME package\]"
 		export GREP_COLOR='0'
 	else
-		/bin/awk -F':' '{if ($5 != "") print $5,$6,$7,$8}' <<< "$bl_line"
+		awk -F':' '{if ($5 != "") print $5,$6,$7,$8}' <<< "$bl_line"
 	fi
 }
 
@@ -228,8 +232,8 @@ function free_alternative ()
 {
 	pack=$1
 	#Get the alternative package in the blacklist, if any
-#	alternative="$(/bin/grep "^${pack}:" "$tmp_file" | cut -d":" -f2)"
-	alternative="$(/bin/awk -F':' -v var="$pack" '{ if ($1 == var) print $2 }' "$tmp_file")"
+#	alternative="$(grep "^${pack}:" "$tmp_file" | cut -d":" -f2)"
+	alternative="$(awk -F':' -v var="$pack" '{ if ($1 == var) print $2 }' "$tmp_file")"
 	case $pack in
 		firefox|chromium|opera) alternative="icecat" ;; #; replacement_counter=$((replacement_counter+1)) ;;
 		vmware|virtualbox) alternative="qemu" ;; #; replacement_counter=$((replacement_counter+1)) ;;
@@ -240,7 +244,7 @@ function free_alternative ()
 	#+of this pkg
 	if [[ -n $alternative ]]; then
 		replacement_counter=$((replacement_counter+1))
-		alternative_version="$(/bin/grep -Ee "^${alternative}-[0-9]" /tmp/libre_repo_pkgs)"
+		alternative_version="$(grep -Ee "^${alternative}-[0-9]" /tmp/libre_repo_pkgs)"
 		if [[ -n $alternative_version ]]; then
 			echo -e "$tab${white}Free alternative: $nc${magenta}$alternative_version$nc"
 		else
@@ -271,22 +275,22 @@ function check_native ()
 	get_blacklist
 	if [[ $full_bl -eq 1 ]]; then :
 	else #By default, remove all branding and merely technical non-free packs
-		/bin/grep ":\[semifree\]\|:\[nonfree\]\|:\[uses-nonfree\]\|::::$" "$tmp_file" > /tmp/parabola_bl_official
+		grep ":\[semifree\]\|:\[nonfree\]\|:\[uses-nonfree\]\|::::$" "$tmp_file" > /tmp/parabola_bl_official
 		tmp_file="/tmp/parabola_bl_official"
 	fi
 	#NOTE: the "::::$" condition in grep is aimed to keep lines coming from
 	#the AUR blacklist 
 	parabola_repo_download
 	echo -ne "${green}==>$nc Getting installed native packages... "
-	#Store installed native pkgs excluding parabola and gnu ones
-	pkgs=( $(/bin/pacman -Qn | /bin/awk '!/\.par|_gnu/{print $1}') )
+	#Store installed native pkgs excluding parabola, hyperbola, and gnu ones
+	pkgs=( $(pacman -Qn | awk '!/\.par|\.hyperbola|_gnu/{print $1}') )
 	echo -e "${green}OK$nc"
 	echo -e "Non-free installed native packages:${nc}\n" 
 	counter=0; fix_doc=0; nonfree=0; semifree=0; technical=0; no_desc=0; replacement_counter=0
 	#Compare blocks of 20 pkgs AT ONCE against the blacklist
 	#This is fast! But there should be a still better solution for this
 	non_free=( $(for ((i=0;i<${#pkgs[@]};i=$((i+20)))); do 
-		/bin/grep "^${pkgs[$i]}:\|^${pkgs[$((i+1))]}:\|^${pkgs[$((i+2))]}:\|^${pkgs[$((i+3))]}:\|^${pkgs[$((i+4))]}:\|^${pkgs[$((i+5))]}:\|^${pkgs[$((i+6))]}:\|^${pkgs[$((i+7))]}:\|^${pkgs[$((i+8))]}:\|^${pkgs[$((i+9))]}:\|^${pkgs[$((i+10))]}:\|^${pkgs[$((i+11))]}:\|^${pkgs[$((i+12))]}:\|^${pkgs[$((i+13))]}:\|^${pkgs[$((i+14))]}:\|^${pkgs[$((i+15))]}:\|^${pkgs[$((i+16))]}:\|^${pkgs[$((i+17))]}:\|^${pkgs[$((i+18))]}:\|^${pkgs[$((i+19))]}:" "$tmp_file" | awk -F':' '{print $1}'
+		grep "^${pkgs[$i]}:\|^${pkgs[$((i+1))]}:\|^${pkgs[$((i+2))]}:\|^${pkgs[$((i+3))]}:\|^${pkgs[$((i+4))]}:\|^${pkgs[$((i+5))]}:\|^${pkgs[$((i+6))]}:\|^${pkgs[$((i+7))]}:\|^${pkgs[$((i+8))]}:\|^${pkgs[$((i+9))]}:\|^${pkgs[$((i+10))]}:\|^${pkgs[$((i+11))]}:\|^${pkgs[$((i+12))]}:\|^${pkgs[$((i+13))]}:\|^${pkgs[$((i+14))]}:\|^${pkgs[$((i+15))]}:\|^${pkgs[$((i+16))]}:\|^${pkgs[$((i+17))]}:\|^${pkgs[$((i+18))]}:\|^${pkgs[$((i+19))]}:" "$tmp_file" | awk -F':' '{print $1}'
 		done) )
 	for (( i=0;i<${#non_free[@]};i++ )); do
 			blacklist_line "${non_free[$i]}" "$((i+1))"
@@ -304,9 +308,9 @@ function check_native ()
 		echo -e "None!"
 	fi
 	echo -e "\n-------------"
-	total_packs=$(/bin/pacman -Qqn | wc -l)
+	total_packs=$(pacman -Qqn | wc -l)
 	echo -e "Total installed native packages: ${white}${total_packs}$nc"
-	if [[ $(type -P /bin/bc) ]]; then
+	if [[ $(type -P bc) ]]; then
 		echo -e "${cyan}Non-free/libre$nc found packages:     ${cyan}$counter ($(echo "scale=1;$counter*100/${#pkgs[@]}" | bc)% of total packages)$nc"
 		echo -e "${magenta}Free/libre$nc alternatives found:     ${magenta}$replacement_counter ($(echo "scale=1;$replacement_counter*100/$counter" | bc)% of non-free/libre packages)$nc"
 		free_pkgs=$(echo "scale=1;((${total_packs}-${counter})*100) / $total_packs" | bc)
@@ -316,7 +320,7 @@ function check_native ()
 		free_pkgs=$(echo "$(((total_packs-counter)*100/total_packs))")
 	fi
 	echo -e "Free/libre native Arch packages: ${white}${free_pkgs}%$nc"
-#	/bin/rm /tmp/official_pkgs 2>/dev/null
+#	rm /tmp/official_pkgs 2>/dev/null
 }
 
 function check_aur ()
@@ -325,12 +329,12 @@ function check_aur ()
 	get_blacklist "aur"
 	if [[ $full_bl -eq 1 ]]; then :
 	else #By default, remove all branding and merely technical non-free packs
-		/bin/grep "::::$\|:\[semifree\]\|:\[nonfree\]\|:\[uses-nonfree\]" "$tmp_file" > /tmp/parabola_bl_aur
+		grep "::::$\|:\[semifree\]\|:\[nonfree\]\|:\[uses-nonfree\]" "$tmp_file" > /tmp/parabola_bl_aur
 		tmp_file="/tmp/parabola_bl_aur"
 	fi
 	parabola_repo_download
 	echo -n "Getting installed AUR packages... "
-	aur_packs=( $(/bin/pacman -Qqm) ) 
+	aur_packs=( $(pacman -Qqm) ) 
 	echo -e "${green}OK$nc"
 	echo -e "Non-free installed AUR packages:${nc}\n"
 	counter=0; fix_doc=0; nonfree=0; semifree=0; technical=0; no_desc=0
@@ -353,7 +357,7 @@ function check_repo ()
 {
 	! [[ $1 ]] && echoerr "You must specify a repository\nUsage: isfree -r [repo_name]\n" && exit 1
 	#validate repo
-	mapfile repos < <(/bin/grep "^\[" /etc/pacman.conf | /bin/grep -v options | /bin/tr -d '[],')
+	mapfile repos < <(grep "^\[" /etc/pacman.conf | grep -v options | tr -d '[],')
 	repo=${1,,}
 	[[ ${repos[@]} != *"$repo"* ]] && echoerr "'$repo': No such repository" && exit 1
 	unset repos
@@ -364,12 +368,12 @@ same name as those in the official repos, running this test upon the LIBRE \
 repo itself will be riddled with false positives."
 		exit 0
 	fi
-	pkgs=( $(/bin/pacman -Sql "$repo") )
+	pkgs=( $(pacman -Sql "$repo") )
 	tmp_file="/tmp/parabola_bl_official_full"
 	get_blacklist
 	if [[ $full_bl -eq 1 ]]; then :
 	else #By default, remove all branding and merely technical non-free packs
-		/bin/grep ":\[semifree\]\|:\[nonfree\]\|:\[uses-nonfree\]" "$tmp_file" > /tmp/parabola_bl_official
+		grep ":\[semifree\]\|:\[nonfree\]\|:\[uses-nonfree\]" "$tmp_file" > /tmp/parabola_bl_official
 		tmp_file="/tmp/parabola_bl_official"
 	fi
 	parabola_repo_download
@@ -378,7 +382,7 @@ repo itself will be riddled with false positives."
 	fix_doc=0; nonfree=0; semifree=0; technical=0; no_desc=0; 
 
 	for (( i=0;i<${#pkgs[@]};i=$((i+20)) )); do 
-		/bin/grep "^${pkgs[$i]}:\|^${pkgs[$((i+1))]}:\|^${pkgs[$((i+2))]}:\|^${pkgs[$((i+3))]}:\|^${pkgs[$((i+4))]}:\|^${pkgs[$((i+5))]}:\|^${pkgs[$((i+6))]}:\|^${pkgs[$((i+7))]}:\|^${pkgs[$((i+8))]}:\|^${pkgs[$((i+9))]}:\|^${pkgs[$((i+10))]}:\|^${pkgs[$((i+11))]}:\|^${pkgs[$((i+12))]}:\|^${pkgs[$((i+13))]}:\|^${pkgs[$((i+14))]}:\|^${pkgs[$((i+15))]}:\|^${pkgs[$((i+16))]}:\|^${pkgs[$((i+17))]}:\|^${pkgs[$((i+18))]}:\|^${pkgs[$((i+19))]}:" "$tmp_file"
+		grep "^${pkgs[$i]}:\|^${pkgs[$((i+1))]}:\|^${pkgs[$((i+2))]}:\|^${pkgs[$((i+3))]}:\|^${pkgs[$((i+4))]}:\|^${pkgs[$((i+5))]}:\|^${pkgs[$((i+6))]}:\|^${pkgs[$((i+7))]}:\|^${pkgs[$((i+8))]}:\|^${pkgs[$((i+9))]}:\|^${pkgs[$((i+10))]}:\|^${pkgs[$((i+11))]}:\|^${pkgs[$((i+12))]}:\|^${pkgs[$((i+13))]}:\|^${pkgs[$((i+14))]}:\|^${pkgs[$((i+15))]}:\|^${pkgs[$((i+16))]}:\|^${pkgs[$((i+17))]}:\|^${pkgs[$((i+18))]}:\|^${pkgs[$((i+19))]}:" "$tmp_file"
 	done > /tmp/non_free_repo
 	IFS=":"
 	while read -r line; do
@@ -390,7 +394,7 @@ repo itself will be riddled with false positives."
 		esac
 		if [[ -n $alt ]]; then
 			alt_counter=$((alt_counter+1))
-			alt_version="$(/bin/grep -Ee "^${alt}-[0-9]" /tmp/libre_repo_pkgs)"
+			alt_version="$(grep -Ee "^${alt}-[0-9]" /tmp/libre_repo_pkgs)"
 			if [[ -n $alt_version ]]; then
 				echo -e "$tab${white}Free alternative: $nc${magenta}$alt_version$nc"
 			else
@@ -401,7 +405,7 @@ repo itself will be riddled with false positives."
 		fi 
 		nonfree_counter=$((nonfree_counter+1))
 	done < /tmp/non_free_repo
-	/bin/rm /tmp/non_free_repo
+	rm /tmp/non_free_repo
 	unset IFS
 
 	[[ $nonfree_counter -eq 0 ]] && echo -e "${green}${repo^^} is free from non-free software!$nc" && exit 0
@@ -411,7 +415,7 @@ repo itself will be riddled with false positives."
 		echo -e "${white}$((i+1))$nc) ${no_alternative[$i]}"
 	done
 	echo -e "\n-------------"
-	echo -e "$white${repo^^}$nc\n$tab${cyan}$nonfree_counter/$(/bin/pacman -Sl "$repo" | /bin/wc -l)$nc packages are ${cyan}non-free$nc."
+	echo -e "$white${repo^^}$nc\n$tab${cyan}$nonfree_counter/$(pacman -Sl "$repo" | wc -l)$nc packages are ${cyan}non-free$nc."
 	echo -e "$tab${magenta}$alt_counter/$nonfree_counter$nc non-free packages have a ${magenta}free$nc alternative."
 #	rm -f /tmp/libre.db
 #	rm -rf /tmp/libre
@@ -423,7 +427,7 @@ function check_privacy ()
 	get_blacklist "privacy"
 	parabola_repo_download
 	echo -n "Getting installed packages... "
-	pkgs=( $(/bin/pacman -Qq) ) && echo -e "${green}OK$nc"
+	pkgs=( $(pacman -Qq) ) && echo -e "${green}OK$nc"
 	echo -e "Non-secure packages installed in your system:${nc}\n" 
 	counter=0; fix_doc=0; nonfree=0; semifree=0; technical=0; no_desc=0
 	nonpriv=( $(for ((i=0;i<${#pkgs[@]};i=$((i+20)))); do 
@@ -443,7 +447,7 @@ function check_privacy ()
 function check_init ()
 {
 	echo -ne "${green}==>$white Checking init system...$nc "	
-	pid1=$(/bin/realpath "$(/bin/cat /proc/1/cmdline | /bin/tr -d '\0')")
+	pid1=$(realpath "$(cat /proc/1/cmdline | tr -d '\0')")
 	init="$(echo ${pid1##*/})"
 	case $init in
 		'') echo -e "Unknown" ;;
@@ -453,7 +457,7 @@ function check_init ()
 
 	echo -e "${green}==>$white Looking for systemd packages...$nc"
 	unset sysd_pkgs
-	[[ $(/bin/pacman -Qq systemd-libs) == "systemd-libs" ]] && sysd_pkgs[0]="systemd-libs"
+	[[ $(pacman -Qq systemd-libs) == "systemd-libs" ]] && sysd_pkgs[0]="systemd-libs"
 	for inst_pkg in /var/lib/pacman/local/*; do 
 		[[ $inst_pkg == *"ALPM_DB_VERSION"* ]] && continue
 		dep=0
@@ -462,7 +466,7 @@ function check_init ()
 			if [[ $dep -eq 1 ]]; then
 				case $line in
 					systemd|systemd-libs) 
-						sysd_pkgs[${#sysd_pkgs[*]}]=$(/bin/sed -n '/%NAME%/{n;p}' "$inst_pkg/desc")
+						sysd_pkgs[${#sysd_pkgs[*]}]=$(sed -n '/%NAME%/{n;p}' "$inst_pkg/desc")
 					;;
 					'') break ;;
 				esac
@@ -482,11 +486,11 @@ function check_init ()
 }
 
 function list_systemd () {
-	repos=( $(/bin/grep "^\[" /etc/pacman.conf | /bin/grep -v options | /bin/tr -d '[]') )
+	repos=( $(grep "^\[" /etc/pacman.conf | grep -v options | tr -d '[]') )
 	echo -e "${green}==>$white Getting enabled repositories...$nc \n${repos[*]}"
 	echo -e "${green}==>$white Getting systemd packages...$nc "
-	sysd_all=( $(/bin/pacman -Sii systemd systemd-libs | /bin/grep "Required By" | /bin/cut -d":" -f2) )
-	for i in ${sysd_all[*]}; do echo "$i"; done | /bin/sort -u
+	sysd_all=( $(pacman -Sii systemd systemd-libs | grep "Required By" | cut -d":" -f2) )
+	for i in ${sysd_all[*]}; do echo "$i"; done | sort -u
 	echo -e "\n${cyan}Total systemd packages: ${#sysd_all[*]}$nc"
 }
 
@@ -496,7 +500,7 @@ function list_official ()
 	get_blacklist
 	if [[ $full_bl -eq 1 ]]; then :
 	else #By default, remove all branding and merely technical non-free packs
-		/usr/bin/grep ":\[semifree\]\|:\[nonfree\]\|:\[uses-nonfree\]" "$tmp_file" > /tmp/parabola_bl_official
+		grep ":\[semifree\]\|:\[nonfree\]\|:\[uses-nonfree\]" "$tmp_file" > /tmp/parabola_bl_official
 		tmp_file="/tmp/parabola_bl_official"
 	fi
 	parabola_repo_download
@@ -525,7 +529,7 @@ function list_aur ()
 	get_blacklist "aur"
 	if [[ $full_bl -eq 1 ]]; then :
 	else #By default, remove all branding and merely technical non-free packs
-		/bin/grep "::::$\|:\[semifree\]\|:\[nonfree\]\|:\[uses-nonfree\]" "$tmp_file" > /tmp/parabola_bl_aur
+		grep "::::$\|:\[semifree\]\|:\[nonfree\]\|:\[uses-nonfree\]" "$tmp_file" > /tmp/parabola_bl_aur
 		tmp_file="/tmp/parabola_bl_aur"
 	fi
 	parabola_repo_download
@@ -574,45 +578,49 @@ function check_pkg ()
 {
 	replacement_counter=0
 	pack=${1,,}
-	#Check official
+	#Check official repositories
+	echo -ne "Cheking enabled official repositories... "
 	#Official repos: core extra community multilib testing community-testing multilib-testing gnome-unstable kde-unstable
 	#This condition only checks locally enabled repos!!
-	if [[ $(/bin/pacman -Ss ^${pack}$ | grep "core\|extra\|community\|multilib\|testing\|community-testing\|multilib-testing\|gnome-unstable\|kde-unstable") ]]; then
+	if [[ $(pacman -Ss ^${pack}$ | grep "core\|extra\|community\|multilib\|testing\|community-testing\|multilib-testing\|gnome-unstable\|kde-unstable") ]]; then
+		echo -e "${green}Found$nc"
 		tmp_file="/tmp/parabola_bl_official_full"
 		get_blacklist
-		echo "Source: official"
 		if [[ $full_bl -eq 1 ]]; then :
 		else #By default, remove all branding and merely technical non-free packs
-			/bin/grep ":\[semifree\]\|:\[nonfree\]\|:\[uses-nonfree\]" "$tmp_file" > /tmp/parabola_bl_official
+			grep ":\[semifree\]\|:\[nonfree\]\|:\[uses-nonfree\]" "$tmp_file" > /tmp/parabola_bl_official
 			tmp_file="/tmp/parabola_bl_official"
 		fi
-
 	#Check AUR
 	#NOTE: The following curl line is able to found AUR packages hidden 
 	#+from the AUR web interface!! Example: your-freedom
-	elif /bin/curl --output /dev/null --silent --head --fail https://aur.archlinux.org/cgit/aur.git/snapshot/"$pack".tar.gz; then
-		tmp_file="/tmp/parabola_bl_aur_full"
-		get_blacklist "aur"
-		echo "Source: AUR"
-		if [[ $full_bl -eq 1 ]]; then :
-		else #By default, remove all branding and merely technical non-free packs
-			/bin/grep "::::$\|:\[semifree\]\|:\[nonfree\]\|:\[uses-nonfree\]" "$tmp_file" > /tmp/parabola_bl_aur
-			tmp_file="/tmp/parabola_bl_aur"
-		fi
 	else
-		echoerr "'$pack': Package not found"
-		exit 1
+		echo "Not found"
+		echo -ne "Checking the AUR... "
+		if curl --output /dev/null --silent --head --fail https://aur.archlinux.org/cgit/aur.git/snapshot/"$pack".tar.gz; then
+			echo -e "${green}Found$nc"
+			tmp_file="/tmp/parabola_bl_aur_full"
+			get_blacklist "aur"
+			if [[ $full_bl -eq 1 ]]; then :
+			else #By default, remove all branding and merely technical non-free packs
+				grep "::::$\|:\[semifree\]\|:\[nonfree\]\|:\[uses-nonfree\]" "$tmp_file" > /tmp/parabola_bl_aur
+				tmp_file="/tmp/parabola_bl_aur"
+			fi
+		else
+			echo "Not found"
+			exit 1
+		fi
 	fi
 
 	parabola_repo_download
 	IFS=":"
-	read -r pkg alt ref id desc < <(/bin/grep -m1 ^"${pack}": "$tmp_file")
+	read -r pkg alt ref id desc < <(grep -m1 ^"${pack}": "$tmp_file")
 	unset IFS
 	if [[ -n $pkg ]]; then
 		echo -ne "${red}$pack is a non-free package$nc\n${white}Description:$nc "
 		if [[ $nocolor -eq 0 ]]; then
 			export GREP_COLOR='1;36'
-			echo "$desc" | /bin/grep --color "\[technical\]\|\[branding\]\|\[nonfree\]\|\[semifree\]\|\[uses-nonfree\]\|\[recommends-nonfree\]\|\[FIXME:description\]\|\[FIXME:package\]"
+			echo "$desc" | grep --color "\[technical\]\|\[branding\]\|\[nonfree\]\|\[semifree\]\|\[uses-nonfree\]\|\[recommends-nonfree\]\|\[FIXME:description\]\|\[FIXME:package\]"
 			export GREP_COLOR='0'
 		else
 			echo "$desc"
@@ -620,10 +628,10 @@ function check_pkg ()
 		free_alternative "$pkg"
 		[[ $replacement_counter -eq 0 ]] && echo -e "$tab${cyan}No free/libre alternative for this package (yet).$nc"
 	else
-		echo -e "${green}'$pack' is totally free software$nc"
+		echo -e "${green}'$pack' is not blacklisted$nc"
 	fi
-#	/usr/bin/rm -f /tmp/libre.db
-#	/usr/bin/rm -rf /tmp/libre
+#	rm -f /tmp/libre.db
+#	rm -rf /tmp/libre
 }
 
 ###MAIN####
@@ -632,7 +640,7 @@ full_bl=0; nocolor=1; tab=""
 
 [[ $# -eq 0 || $1 == "--help" || $1 == "help" ]] && show_help && exit 0
 
-if ! [[ $(type -P /bin/pacman) ]]; then
+if ! [[ $(type -P pacman) ]]; then
 	echoerr "Pacman not found: This isn't Arch Linux nor an Arch Linux based distribution"
 	exit 1
 fi
@@ -663,7 +671,7 @@ while getopts ":acdfhilmnpr:s:tvx" opt; do
 	esac
 done
 
-[[ -f /tmp/libre.db ]] && /bin/rm -f /tmp/libre.db
-[[ -d /tmp/libre ]] && /bin/rm -rf /tmp/libre
+[[ -f /tmp/libre.db ]] && rm -f /tmp/libre.db
+[[ -d /tmp/libre ]] && rm -rf /tmp/libre
 
 exit 0
