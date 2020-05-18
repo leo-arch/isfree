@@ -1,5 +1,5 @@
 # Maintainer: archcrack <johndoe.arch@outlook.com>
-#test
+
 pkgname=isfree
 pkgver=0.8.8.2
 pkgrel=1
