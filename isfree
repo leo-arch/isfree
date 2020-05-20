@@ -83,8 +83,8 @@ function show_help ()
 	echo -e "$PROG_NAME is fundamentally aimed to find out whether there is \
 non-free/libre software installed in your Arch Linux system. When non-free \
 software is found, $PROG_NAME will suggest a free alternative (taken from \
-Parabola's libre repo). If the libre repo is locally enabled, it will show \
-the package version as well. Secondly, $PROG_NAME can also check your \
+Parabola Linux libre repo). If the libre repo is locally enabled, it will \
+show the package version as well. Secondly, $PROG_NAME can also check your \
 system for systemd and systemd dependencies, supporting thus the so-called \
 'init freedom'.
 Exception made of the init checks, all the the tests are based on \
