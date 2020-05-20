@@ -81,19 +81,28 @@ function echoerr ()
 function show_help ()
 {
 	echo -e "$PROG_NAME is fundamentally aimed to find out whether there is \
-non-free/libre software installed in your Arch Linux system. When non-free software is found, \
-$PROG_NAME will suggest a free alternative, if any.
-The tests are based on Parabola's blacklists, which can be found in the following sites: 
-- https://git.parabola.nu/blacklist.git/plain/blacklist.txt (blacklisted official Arch packages)
-- https://git.parabola.nu/blacklist.git/plain/aur-blacklist.txt (AUR blacklisted packages)
-- https://git.parabola.nu/blacklist.git/plain/your-privacy-blacklist.txt (privacy risking packages).
+non-free/libre software installed in your Arch Linux system. When non-free \
+software is found, $PROG_NAME will suggest a free alternative (taken from \
+Parabola's libre repo). If the libre repo is locally enabled, it will show \
+the package version as well. Secondly, $PROG_NAME can also check your \
+system for systemd and systemd dependencies, supporting thus the so-called \
+'init freedom'.
+Exception made of the init checks, all the the tests are based on \
+Parabola's blacklists, which can be found in the following URL's: 
+- https://git.parabola.nu/blacklist.git/plain/blacklist.txt (blacklisted \
+official Arch packages)
+- https://git.parabola.nu/blacklist.git/plain/aur-blacklist.txt \
+(AUR blacklisted packages)
+- https://git.parabola.nu/blacklist.git/plain/your-privacy-blacklist.txt \
+(privacy risking packages).
 \nUsage: $ME [OPTION]... [PKG] [REPO]
 -a\t\tscan your system for non-free AUR packages
 -c\t\tenable colored output
 -d\t\tlist systemd packages provided by your enabled repositories
 -f\t\tprint an extract from 'What is Free Software?', by Richard Stallman
 -h\t\tshow this help and exit
--i\t\tlist installed packages directly depending on systemd (check your init freedom)
+-i\t\tlist installed packages directly depending on systemd (check your \
+init freedom)
 -l\t\tlist all the official Arch Linux non-free packages
 -m\t\tlist all the AUR non-free packages
 -n\t\tscan your system for non-free native packages
@@ -104,11 +113,10 @@ The tests are based on Parabola's blacklists, which can be found in the followin
 -v\t\tshow program version
 -x\t\tlist all the privacy threatening software
 \nNOTE: By default, $PROG_NAME won't list packages considered non-free by \
-Parabola's blacklist due to technical or branding issues (like pacman(!), systemd, filesystem, or grub), \
-simply because these packages are by themselves free according to RMS definition of free-software \
-(see the -f option). To use Parabola's full blacklist use the -t option.
-\nNOTE 2: Whenever a free alternative for a non-free package is found, $PROG_NAME \
-will try to get the current version of the free package from Parabola's libre repository."
+Parabola's blacklist due to technical or branding issues (like pacman(!), \
+systemd, filesystem, or grub), simply because these packages are by \
+themselves free according to RMS definition of free-software \
+(see the -f option). To use Parabola's full blacklist use the -t option."
 }
 
 function show_version ()
