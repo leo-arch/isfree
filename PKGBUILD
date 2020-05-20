@@ -3,7 +3,7 @@
 pkgname=isfree
 pkgver=0.8.8.2
 pkgrel=1
-pkgdesc="Check whether there is non-free software in your Arch Linux system"
+pkgdesc="Check for non-free software in your Arch Linux system"
 arch=(any)
 url="https://github.com/leo-arch/isfree"
 license=(GPL2)
