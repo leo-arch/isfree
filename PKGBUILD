@@ -2,12 +2,13 @@
 
 pkgname=isfree
 pkgver=0.8.8.2
-pkgrel=2
+pkgrel=3
 pkgdesc="Check for non-free software in your Arch Linux system"
 arch=(any)
 url="https://github.com/leo-arch/isfree"
 license=(GPL2)
 depends=('pacman' 'coreutils' 'sed' 'gawk' 'grep' 'tar' 'curl')
+optdepends=('bc: percentages support')
 makedepends=('git')
 source=("git+${url}.git")
 sha256sums=('SKIP')

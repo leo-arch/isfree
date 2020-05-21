@@ -1,7 +1,7 @@
 pkgbase = isfree
 	pkgdesc = Check for non-free software in your Arch Linux system
 	pkgver = 0.8.8.2
-	pkgrel = 2
+	pkgrel = 3
 	url = https://github.com/leo-arch/isfree
 	arch = any
 	license = GPL2
@@ -13,6 +13,7 @@ pkgbase = isfree
 	depends = grep
 	depends = tar
 	depends = curl
+	optdepends = bc: percentages support
 	source = git+https://github.com/leo-arch/isfree.git
 	sha256sums = SKIP
 
