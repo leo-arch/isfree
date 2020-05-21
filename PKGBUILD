@@ -1,7 +1,7 @@
 # Maintainer: archcrack <johndoe.arch@outlook.com>
 
 pkgname=isfree
-pkgver=0.8.8.2
+pkgver=0.8.10
 pkgrel=3
 pkgdesc="Check for non-free software in your Arch Linux system"
 arch=(any)

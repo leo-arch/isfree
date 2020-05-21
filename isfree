@@ -54,7 +54,7 @@ nc=""
 
 PROG_NAME="IsFree"
 ME="isfree"
-VERSION="0.8.8.2"
+VERSION="0.8.10"
 DATE="May, 2020"
 AUTHOR="L. M. Abramovich"
 
