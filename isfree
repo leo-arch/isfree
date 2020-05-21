@@ -305,7 +305,7 @@ function check_native ()
 			free_alternative "${non_free[$i]}"
 	done
 	counter=$i
-	[[ $counter -eq 0 ]] && echo -e "\n\r\e[1A${green}All your native Arch packages are free\nRMS smiles!$nc" && exit 0
+	[[ $counter -eq 0 ]] && echo -e "\e[1A${green}All your native Arch packages are free\nRMS smiles!$nc" && exit 0
 	[[ $nocolor -eq 0 ]] && color_codes $nonfree $semifree $technical $fix_doc $no_desc
 	echo -e "\n${cyan}Packages with no free/libre alternatives (yet):$nc"
 	if [[ ${#no_alternative[@]} -gt 0 ]]; then
@@ -341,7 +341,7 @@ function check_aur ()
 		tmp_file="/tmp/parabola_bl_aur"
 	fi
 	parabola_repo_download
-	echo -n "Getting installed AUR packages... "
+	echo -ne "${green}==>$nc Getting installed AUR packages... "
 	aur_packs=( $(pacman -Qqm) ) 
 	echo -e "${green}OK$nc"
 	echo -e "Non-free installed AUR packages:${nc}\n"
@@ -434,7 +434,7 @@ function check_privacy ()
 	tmp_file="/tmp/parabola_bl_privacy"
 	get_blacklist "privacy"
 	parabola_repo_download
-	echo -n "Getting installed packages... "
+	echo -ne "${green}==>$nc Getting installed packages... "
 	pkgs=( $(pacman -Qq) ) && echo -e "${green}OK$nc"
 	echo -e "Non-secure packages installed in your system:${nc}\n" 
 	counter=0; fix_doc=0; nonfree=0; semifree=0; technical=0; no_desc=0
@@ -446,7 +446,7 @@ function check_privacy ()
 			free_alternative ${nonpriv[$i]}
 	done
 	counter=$i
-	[[ $counter -eq 0 ]] && echo -e "${green}None! You're free from privacy risking packages!$nc" && exit 0
+	[[ $counter -eq 0 ]] && echo -e "\e[1A${green}None! You're free from privacy risking packages!$nc" && exit 0
 	[[ $nocolor -eq 0 ]] && color_codes $nonfree $semifree $technical $fix_doc $no_desc
 	echo -e "\n-------------"
 	echo -e "${white}${counter}/$(pacman -Q | wc -l)$nc packages might be compromizing your privacy."
