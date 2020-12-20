@@ -6,6 +6,7 @@ pkgbase = isfree
 	arch = any
 	license = GPL2
 	makedepends = git
+	depends = bash
 	depends = pacman
 	depends = coreutils
 	depends = sed
