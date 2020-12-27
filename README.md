@@ -9,14 +9,13 @@ Update: Last version includes an option (-i) to check your system for systemd de
 
 ## Installation
 
-1. Clone or download the project files (**no compilation nor installation** is required)
+Clone the project, cd into the isfree directory, compile and install with `makepkg`, and finally run the program:
 
         git clone https://github.com/leo-arch/isfree
-
-2. Execution:
-
-       cd isfree; ./isfree [OPTIONS]
+		cd isfree
+		makepkg -si
+		isfree -h
 
 ## A side note
 
-Though `isfree` works perfectly as a standalone program, it was originally intended to work together with two other programs: `pacfree` (see https://github.com/leo-arch/pacfree) and `pacrep` (see https://github.com/leo-arch/pacrep). Take a look specially at `pacfree`, which is the head of this triad.
+Though `isfree` works perfectly as a standalone program, it was originally intended to work together with two other programs: `pacfree` (see https://github.com/leo-arch/pacfree) and `pacrep` (see https://github.com/leo-arch/pacrep). Take a look specially at `pacfree`, which is the head of this triad. They were all designed to make `pacman` and Arch Linux even more free.
