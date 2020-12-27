@@ -11,10 +11,10 @@ Update: Last version includes an option (-i) to check your system for systemd de
 
 Clone the project, cd into the isfree directory, compile and install with `makepkg`, and finally run the program:
 
-        git clone https://github.com/leo-arch/isfree
-		cd isfree
-		makepkg -si
-		isfree -h
+	git clone https://github.com/leo-arch/isfree
+	cd isfree
+	makepkg -si
+	isfree -h
 
 ## A side note
 
