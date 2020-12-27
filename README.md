@@ -16,3 +16,7 @@ Update: Last version includes an option (-i) to check your system for systemd de
 2. Execution:
 
        cd isfree; ./isfree [OPTIONS]
+
+## A side note
+
+Though `isfree` works perfectly as a standalone program, it was originally intended to work together with two other programs: `pacfree` (see https://github.com/leo-arch/pacfree) and `pacrep` (see https://github.com/leo-arch/pacrep). Take a look specially at `pacfree`, which is the head of this triad.
