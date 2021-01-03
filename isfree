@@ -53,6 +53,8 @@ d_yellow=""
 bold=""
 nc=""
 
+### PROGRAM DATA ###
+
 PROG_NAME="IsFree"
 ME="isfree"
 VERSION="0.8.11"
@@ -61,8 +63,12 @@ AUTHOR="L. Abramovich"
 LICENSE="GPL2"
 WEBSITE="https://github.com/leo-arch/isfree"
 
+### EXIT CODES ###
+
 SUCCESS=0
 ERROR=1
+
+### URLS ###
 
 OFFICIAL_BLACKLIST="https://git.parabola.nu/blacklist.git/plain/blacklist.txt"
 AUR_BLACKLIST="https://git.parabola.nu/blacklist.git/plain/aur-blacklist.txt"
@@ -77,7 +83,8 @@ LIBRE_REPO="http://mirror.fsf.org/parabola/libre/os/$(uname -m)/libre.db"
 LC_ALL=C
 LANG=C
 
-###FUNCTIONS###
+
+### FUNCTIONS ###
 
 function echoerr ()
 {
@@ -149,7 +156,7 @@ program controls the users, and the developer controls the program; this makes t
 instrument of unjust power${nc}.
 A program is free software if the program's users have the ${yellow}four essential freedoms:$nc
 
-${yellow}-The freedom to run the program as you wish, for any purpose (freedom 0).
+${cyan}-The freedom to run the program as you wish, for any purpose (freedom 0).
 -The freedom to study how the program works, and change it so it does your computing as you \
 wish (freedom 1). Access to the source code is a precondition for this.
 -The freedom to redistribute copies so you can help your neighbor (freedom 2).
@@ -175,19 +182,24 @@ function get_blacklist ()
 
 			aur)
 				echo -ne "${blue}::$nc$bold Downloading Parabola's AUR blacklist...$nc "
-				curl -s "$AUR_BLACKLIST" | sed 's/  //g' | grep -v ^'#' > "$tmp_file"
+				curl -s "$AUR_BLACKLIST" | sed 's/  //g' \
+				| grep -v ^'#' > "$tmp_file"
 			;;
 
 			privacy)
 				echo -ne "${blue}::$nc$bold Downloading Parabola's privacy blacklist...$nc "
-				curl -s "$PRIVACY_BLACKLIST" | sed 's/  //g' | grep -v ^'#' > "$tmp_file"
+				curl -s "$PRIVACY_BLACKLIST" | sed 's/  //g' \
+				| grep -v ^'#' > "$tmp_file"
 			;;
 
 			*)
 				echo -ne "${blue}::$nc$bold Downloading Parabola's blacklist...$nc "
-				curl -s "$OFFICIAL_BLACKLIST" | sed 's/  //g' | grep -v ^'#' > "$tmp_file"
+				curl -s "$OFFICIAL_BLACKLIST" | sed 's/  //g' \
+				| grep -v ^'#' > "$tmp_file"
+
 				# Add the AUR blacklist too in case of packages installed from some unofficial repo
-				curl -s "$AUR_BLACKLIST" | sed 's/  //g' | grep -v ^'#' >> "$tmp_file"
+				curl -s "$AUR_BLACKLIST" | sed 's/  //g' \
+				| grep -v ^'#' >> "$tmp_file"
 			;;
 		esac
 
@@ -354,7 +366,9 @@ function check_native ()
 	if [[ $full_bl -eq 1 ]]; then :
 
 	else #By default, remove all branding and merely technical non-free packs
-		grep ":\[semifree\]\|:\[nonfree\]\|:\[uses-nonfree\]\|::::$" "$tmp_file" > /tmp/parabola_bl_official
+		grep ":\[semifree\]\|:\[nonfree\]\|:\[uses-nonfree\]\|::::$" \
+		"$tmp_file" > /tmp/parabola_bl_official
+		
 		tmp_file="/tmp/parabola_bl_official"
 	fi
 
@@ -375,8 +389,12 @@ function check_native ()
 
 	#Compare blocks of 20 pkgs AT ONCE against the blacklist
 	#This is fast! But there should be a still better solution for this
-	non_free=( $(for ((i=0;i<${#pkgs[@]};i=$((i+20)))); do 
-		grep "^${pkgs[$i]}:\|^${pkgs[$((i+1))]}:\|^${pkgs[$((i+2))]}:\|^${pkgs[$((i+3))]}:\|^${pkgs[$((i+4))]}:\|^${pkgs[$((i+5))]}:\|^${pkgs[$((i+6))]}:\|^${pkgs[$((i+7))]}:\|^${pkgs[$((i+8))]}:\|^${pkgs[$((i+9))]}:\|^${pkgs[$((i+10))]}:\|^${pkgs[$((i+11))]}:\|^${pkgs[$((i+12))]}:\|^${pkgs[$((i+13))]}:\|^${pkgs[$((i+14))]}:\|^${pkgs[$((i+15))]}:\|^${pkgs[$((i+16))]}:\|^${pkgs[$((i+17))]}:\|^${pkgs[$((i+18))]}:\|^${pkgs[$((i+19))]}:" "$tmp_file" | awk -F':' '{print $1}'
+#	non_free=( $(for ((i=0;i<${#pkgs[*]};i=$((i+20)))); do
+#		grep "^${pkgs[$i]}:\|^${pkgs[$((i+1))]}:\|^${pkgs[$((i+2))]}:\|^${pkgs[$((i+3))]}:\|^${pkgs[$((i+4))]}:\|^${pkgs[$((i+5))]}:\|^${pkgs[$((i+6))]}:\|^${pkgs[$((i+7))]}:\|^${pkgs[$((i+8))]}:\|^${pkgs[$((i+9))]}:\|^${pkgs[$((i+10))]}:\|^${pkgs[$((i+11))]}:\|^${pkgs[$((i+12))]}:\|^${pkgs[$((i+13))]}:\|^${pkgs[$((i+14))]}:\|^${pkgs[$((i+15))]}:\|^${pkgs[$((i+16))]}:\|^${pkgs[$((i+17))]}:\|^${pkgs[$((i+18))]}:\|^${pkgs[$((i+19))]}:" "$tmp_file" | awk -F':' '{print $1}'
+#		done) )
+
+	non_free=( $(for ((i=0;i<${#pkgs[*]};i++)); do
+		grep "^${pkgs[$i]}:" "$tmp_file" | awk -F':' '{print $1}'
 		done) )
 
 	for (( i=0;i<${#non_free[*]};i++ )); do
@@ -872,7 +890,7 @@ function check_pkg ()
 		free_alternative "$pkg"
 
 		if [[ $replacement_counter -eq 0 ]]; then
-			echo -e "$tabNo free/libre alternative for this package (yet)."
+			echo -e "${tab}No free/libre alternative for this package (yet)."
 		fi
 
 	else
@@ -883,7 +901,10 @@ function check_pkg ()
 #	rm -rf /tmp/libre
 }
 
-###MAIN####
+
+					#####################
+					#       MAIN        #
+					#####################
 
 full_bl=0; nocolor=1; tab=""
 
@@ -898,11 +919,13 @@ while getopts ":acdfhilmnpr:s:tvx" opt; do
 
 	case $opt in
 		a) check_aur ;;
-		c) nocolor=0; tab="\t"
-			white="\033[1;37m"; red="\033[1;31m"; yellow="\033[1;33m"
-			green="\033[1;32m"; cyan="\033[1;36m"; blue="\033[1;34m"
-			magenta="\033[1;35m"; d_yellow="\033[0;33m"; nc="\033[0m"
-			bold="\033[1m"
+		c)
+			nocolor=0; tab="\t"
+			white="\033[1;37m"; red="\033[1;31m"
+			yellow="\033[1;33m"; green="\033[1;32m"
+			cyan="\033[1;36m"; blue="\033[1;34m"
+			magenta="\033[1;35m"; d_yellow="\033[0;33m"
+			nc="\033[0m"; bold="\033[1m"
 		;;
 		d) list_systemd ;;
 		f) free_soft ;;
