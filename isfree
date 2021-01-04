@@ -18,9 +18,9 @@
 
 ### DESCRIPTION ###
 
-#This script is mainly intended to find out whether there is non-free/libre software
-#+in your Arch Linux machine, and, if any, to suggest a free alternative. It uses
-#+Parabola's blacklists to perform the tests.
+#This script is mainly intended to find out whether there is non-free/libre
+#+ software in your Arch Linux machine, and, if any, to suggest a free
+#+ alternative. It uses Parabola's blacklists to perform the tests.
 
 #Blacklists can be found at:
 #  https://git.parabola.nu/blacklist.git/plain/blacklist.txt
@@ -29,14 +29,15 @@
 #or, for the privacy blacklist:
 #  https://git.parabola.nu/blacklist.git/plain/your-privacy-blacklist.txt
 
-# NOTE: GitHub (https://github.com/duckinator/check-free.git) has a script called
-#+'check-free' (written by Nick Marwell (duckinator)), which is intended to do the
-#+ same thing this script does. However, I'm not sure whether it works so fine,
-#+ since it only recognizes -provided my script does the job well- only 6 of MY 33
-#+ non-free packages.
-#+ GitHub also hosts a python script called absolutely-proprietary, developed by
-#+ vmavromatis, which does the same thing as my script: checking Arch Linux installed
-#+ packages against Parabola's blacklists. See https://github.com/vmavromatis/absolutely-proprietary
+# NOTE: GitHub (https://github.com/duckinator/check-free.git) has a script
+#+ called 'check-free' (written by Nick Marwell (duckinator)), which is
+#+ intended to do the same thing this script does. However, I'm not sure
+#+ whether it works so fine, since it only recognizes -provided my script
+#+ does the job well- only 6 of MY 33 non-free packages.
+#+ GitHub also hosts a python script called absolutely-proprietary,
+#+ developed by vmavromatis, which does the same thing as my script:
+#+ checking Arch Linux installed packages against Parabola's blacklists.
+#+ See https://github.com/vmavromatis/absolutely-proprietary
 
 # More Parabola's blacklists:
 # emulator-blacklist: https://git.parabola.nu/blacklist.git/plain/your-freedom_emu-blacklist.txt
@@ -80,10 +81,9 @@ nc=""
 
 ### PROGRAM DATA ###
 
-PROG_NAME="IsFree"
-ME="isfree"
+ME="IsFree"
 VERSION="0.8.12"
-DATE="Jan 3, 2021"
+DATE="Jan 4, 2021"
 AUTHOR="L. Abramovich"
 LICENSE="GPL2"
 WEBSITE="https://github.com/leo-arch/isfree"
@@ -109,20 +109,26 @@ LC_ALL=C
 LANG=C
 
 
-### FUNCTIONS DEFINITIONS ###
+					#############################
+					#   FUNCTIONS DEFINITIONS   #
+					#############################
+
+################################
 
 function echoerr ()
 {
 	echo -e "$@" >&2
 }
 
+################################
+
 function show_help ()
 {
-	echo -e "$PROG_NAME is fundamentally aimed to find out whether there is \
+	echo -e "$ME is fundamentally aimed to find out whether there is \
 non-free/libre software installed in your Arch Linux system. When non-free \
-software is found, $PROG_NAME will suggest a free alternative (taken from \
+software is found, $ME will suggest a free alternative (taken from \
 Parabola Linux libre repo). If the libre repo is locally enabled, it will \
-show the package version as well. Secondly, $PROG_NAME can also check your \
+show the package version as well. Secondly, $ME can also check your \
 system for systemd and systemd dependencies, supporting thus the so-called \
 'init freedom'.
 Exception made of the init checks, all the the tests are based on \
@@ -150,49 +156,65 @@ init freedom)
 -t\t\tuse Parabola's full blacklist (see note below)
 -v\t\tshow program version
 -x\t\tlist all the privacy threatening software
-\nNOTE: By default, $PROG_NAME won't list packages considered non-free by \
+\nNOTE: By default, $ME won't list packages considered non-free by \
 Parabola's blacklist due to technical or branding issues (like pacman(!), \
 systemd, filesystem, or grub), simply because these packages are by \
 themselves free according to RMS definition of free-software \
 (see the -f option). To use Parabola's full blacklist use the -t option."
 }
 
+################################
+
 function show_version ()
 {
-	echo -e "$PROG_NAME $VERSION ($DATE), by $AUTHOR
+	echo -e "$ME $VERSION ($DATE), by $AUTHOR
 License: $LICENSE
 Website: $WEBSITE"
 }
 
+################################
+
 function free_soft ()
 {
-	echo -e "Excerpt from $nc${bold}'What is Free Software?'$nc (by Richard Stallman)
+	echo -e "Excerpt from $nc${bold}'What is Free Software?'$nc (by Richard \
+Stallman)
 Source: https://www.gnu.org/philosophy/free-sw.html\n
-${cyan}\"Free software\" means software that respects users' freedom and community. Roughly, \
-it means that the users have the freedom to run, copy, distribute, study, change and improve the \
-software${nc}. Thus, ${cyan}\"free software\" is a matter of liberty, not price${nc}. To understand \
-the concept, you should think of ${cyan}\"free\" as in \"free speech\", not as in \"free beer\"${nc}. \
-We sometimes call it ${cyan}\"libre software\"${nc}, borrowing the French or Spanish word for \
-\"free\" as in freedom, to show we do not mean the software is gratis.
-We campaign for these freedoms because everyone deserves them. With these freedoms, the users \
-(both individually and collectively) control the program and what it does for them.${cyan} When \
-users don't control the program, we call it a \"nonfree\" or proprietary program. The nonfree \
-program controls the users, and the developer controls the program; this makes the program an \
+${cyan}\"Free software\" means software that respects users' freedom and \
+community. Roughly, it means that the users have the freedom to run, copy, \
+distribute, study, change and improve the software${nc}. Thus, ${cyan}\"free \
+software\" is a matter of liberty, not price${nc}. To understand the \
+concept, you should think of ${cyan}\"free\" as in \"free speech\", not as \
+in \"free beer\"${nc}. We sometimes call it ${cyan}\"libre software\"${nc}, \
+borrowing the French or Spanish word for \"free\" as in freedom, to show  \
+we do not mean the software is gratis. We campaign for these freedoms \
+because everyone deserves them. With these freedoms, the users \
+(both individually and collectively) control the program and what it does \
+for them.${cyan} When users don't control the program, we call it \
+a \"nonfree\" or proprietary program. The nonfree program controls the \
+users, and the developer controls the program; this makes the program an \
 instrument of unjust power${nc}.
-A program is free software if the program's users have the ${yellow}four essential freedoms:$nc
+A program is free software if the program's users have the ${yellow}four \
+essential freedoms:$nc
 
-${cyan}-The freedom to run the program as you wish, for any purpose (freedom 0).
--The freedom to study how the program works, and change it so it does your computing as you \
-wish (freedom 1). Access to the source code is a precondition for this.
--The freedom to redistribute copies so you can help your neighbor (freedom 2).
--The freedom to distribute copies of your modified versions to others (freedom 3). By doing \
-this you can give the whole community a chance to benefit from your changes. Access to the source \
-code is a precondition for this.$nc
+${cyan}-The freedom to run the program as you wish, for any purpose \
+(freedom 0).
+-The freedom to study how the program works, and change it so it does \
+your computing as you wish (freedom 1). Access to the source code is a \
+precondition for this.
+-The freedom to redistribute copies so you can help your neighbor \
+(freedom 2).
+-The freedom to distribute copies of your modified versions to others \
+(freedom 3). By doing this you can give the whole community a chance \
+to benefit from your changes. Access to the source code is a precondition \
+for this.$nc
 
-A program is free software if it gives users adequately all of these freedoms. Otherwise, it \
-is nonfree. While we can distinguish various nonfree distribution schemes in terms of how far \
-they fall short of being free, we consider them all equally unethical (...)\n"
+A program is free software if it gives users adequately all of these \
+freedoms. Otherwise, it is nonfree. While we can distinguish various \
+nonfree distribution schemes in terms of how far they fall short of \
+being free, we consider them all equally unethical (...)\n"
 }
+
+################################
 
 function get_blacklist ()
 {
@@ -205,42 +227,42 @@ function get_blacklist ()
 	fi
 
 	if ! [[ $(type -P /usr/bin/curl) ]]; then
-		echoerr "'curl': Command not found"
+		echoerr "${ME,,}: 'curl': Command not found"
 		exit $ERROR
 	fi
 
 	case $1 in
 
 		aur)
-			echo -ne "${blue}::$nc$bold Downloading Parabola's AUR \
-blacklist...$nc "
+			echo -ne "${blue}::$nc$bold Downloading Parabola's AUR" \
+					 "blacklist...$nc "
 			/usr/bin/curl -s "$AUR_BLACKLIST" | /usr/bin/sed 's/  //g' \
 			| /usr/bin/grep -v ^'#' | /usr/bin/sudo -u "$user" \
-			/usr/bin/tee "$tmp_file" 1>/dev/null
+			/usr/bin/tee "$tmp_file" &>/dev/null
 		;;
 
 		privacy)
-			echo -ne "${blue}::$nc$bold Downloading Parabola's privacy \
-blacklist...$nc "
+			echo -ne "${blue}::$nc$bold Downloading Parabola's privacy" \
+					 "blacklist...$nc "
 			/usr/bin/curl -s "$PRIVACY_BLACKLIST" \
 			| /usr/bin/sed 's/  //g' | /usr/bin/grep -v ^'#' \
 			| /usr/bin/sudo -u "$user" /usr/bin/tee \
-			"$tmp_file" 1>/dev/null
+			"$tmp_file" &>/dev/null
 		;;
 
 		*)
-			echo -ne "${blue}::$nc$bold Downloading Parabola's \
-blacklist...$nc "
+			echo -ne "${blue}::$nc$bold Downloading Parabola's" \
+					 "blacklist...$nc "
 			/usr/bin/curl -s "$OFFICIAL_BLACKLIST" \
 			| /usr/bin/sed 's/  //g' | /usr/bin/grep -v ^'#' \
 			| /usr/bin/sudo -u "$user" /usr/bin/tee \
-			"$tmp_file" 1>/dev/null
+			"$tmp_file" &>/dev/null
 
 			# Add the AUR blacklist too in case of packages installed
 			#+ from some unofficial repo
 			/usr/bin/curl -s "$AUR_BLACKLIST" | /usr/bin/sed 's/  //g' \
 			| /usr/bin/grep -v ^'#' | /usr/bin/sudo -u "$user" \
-			/usr/bin/tee -a "$tmp_file" 1>/dev/null
+			/usr/bin/tee -a "$tmp_file" &>/dev/null
 		;;
 	esac
 
@@ -251,6 +273,8 @@ blacklist...$nc "
 		exit $ERROR
 	fi
 }
+
+################################
 
 function parabola_repo_download ()
 {
@@ -264,23 +288,23 @@ function parabola_repo_download ()
 
 	if /usr/bin/grep -q "^\[libre\]" /etc/pacman.conf 2>/dev/null; then
 
-		echo -ne "${blue}::$nc$bold Getting packages from [libre] \
-repo...$nc "
+		echo -ne "${blue}::$nc$bold Getting packages from [libre]" \
+				 "repo...$nc "
 
 		if /usr/bin/pacman -Sl libre | /usr/bin/awk '{print $2"-"$3}' \
 		| /usr/bin/sudo -u "$user" /usr/bin/tee \
-		/tmp/libre_repo_pkgs 1>/dev/null; then
+		/tmp/libre_repo_pkgs &>/dev/null; then
 			echo -e "${green}OK$nc"
 		fi
 
 		return $SUCCESS
 	fi
 
-	echo -ne "${blue}::$nc$bold Downloading Parabola's repository \
-database...$nc "
+	echo -ne "${blue}::$nc$bold Downloading Parabola's repository" \
+			 "database...$nc "
 
 	if ! [[ $(type -P /usr/bin/wget) ]]; then 
-		echoerr "\n$ME: 'wget': Command not found"
+		echoerr "\n${ME,,}: 'wget': Command not found"
 		exit $ERROR
 	fi
 
@@ -298,8 +322,10 @@ database...$nc "
 	/usr/bin/tar xvfz /tmp/libre.db -C /tmp/libre &>/dev/null
 
 	/usr/bin/ls /tmp/libre | /usr/bin/sudo -u "$user" \
-	/usr/bin/tee /tmp/libre_repo_pkgs 1>/dev/null
+	/usr/bin/tee /tmp/libre_repo_pkgs &>/dev/null
 }
+
+################################
 
 function blacklist_line ()
 {
@@ -349,6 +375,8 @@ function blacklist_line ()
 	fi
 }
 
+################################
+
 function free_alternative ()
 {
 	local pack=$1
@@ -390,6 +418,8 @@ function free_alternative ()
 	fi
 }
 
+################################
+
 function color_codes ()
 {
 	local nonfree=$1
@@ -400,22 +430,37 @@ function color_codes ()
 
 	echo -e "\n${bold}Color codes:"
 
-	[[ $nonfree -gt 0 ]] && echo -e "${red}Red:$nc Totally non-free, \
-closed source code ($nonfree)."
+	if [[ $nonfree -gt 0 ]]; then
+		echo -e "${red}Red:$nc Totally non-free," \
+				"closed source code ($nonfree)."
+	fi
 
-	[[ $semifree -gt 0 ]] && echo -e "${yellow}Yellow:$nc Contains or \
-depends on non-free software ($semifree)."
+	if [[ $semifree -gt 0 ]]; then
+		echo -e "${yellow}Yellow:$nc Contains or" \
+				"depends on non-free software ($semifree)."
+	fi
 
-	[[ $technical -gt 0 ]] && echo -e "${green}Green:$nc It IS by \
-itself free, but has some technical, branding or trademarkig issue, or \
-simply points somehow to non-free software ($technical)."
+	if [[ $technical -gt 0 ]]; then
+		echo -e "${green}Green:$nc It IS by" \
+				"itself free, but has some technical," \
+				"branding or trademarkig issue, or" \
+				"simply points somehow to non-free" \
+				"software ($technical)."
+	fi
 
-	[[ $fix_doc -gt 0 ]] && echo -e "${white}White:$nc Package \
-description needs to be corrected ($fix_doc)."
+	if [[ $fix_doc -gt 0 ]]; then
+		echo -e "${white}White:$nc Package" \
+				"description needs to be corrected ($fix_doc)."
+	fi
 
-	[[ $no_desc -gt 0 ]] && echo -e "${blue}Blue:$nc there is no \
-description of this package in Parabola's blacklist ($no_desc)."
+	if [[ $no_desc -gt 0 ]]; then
+		echo -e "${blue}Blue:$nc there is no" \
+				"description of this package in" \
+				"Parabola's blacklist ($no_desc)."
+	fi
 }
+
+################################
 
 function check_native ()
 {
@@ -430,7 +475,7 @@ function check_native ()
 		#+ non-free packs
 		/usr/bin/grep ":\[semifree\]\|:\[nonfree\]\|:\[uses-nonfree\]\|::::$" \
 		"$tmp_file" | /usr/bin/sudo -u "$user" /usr/bin/tee \
-		/tmp/parabola_bl_official 1>/dev/null
+		/tmp/parabola_bl_official &>/dev/null
 
 		tmp_file="/tmp/parabola_bl_official"
 	fi
@@ -471,8 +516,8 @@ function check_native ()
 	counter=$i
 
 	if [[ $counter -eq 0 ]]; then
-		echo -e "\e[1A${green}[+]$nc All your native Arch packages \
-are free\nRMS smiles!"
+		echo -e "\e[1A${green}[+]$nc All your native Arch packages" \
+				"are free\nRMS smiles!"
 		exit $SUCCESS
 	fi
 
@@ -500,13 +545,26 @@ are free\nRMS smiles!"
 	echo -e "Total installed native packages: ${total_packs}"
 
 	if [[ $(type -P /usr/bin/bc) ]]; then
-		echo -e "$nc${red}Non-free/libre$nc found packages:   $counter ($(echo "scale=1;$counter*100/${#pkgs[@]}" | bc)% of total packages)"
-		echo -e "$nc${bold}Free/libre$nc alternatives found:   $replacement_counter ($(echo "scale=1;$replacement_counter*100/$counter" | bc)% of non-free/libre packages)"
-		free_pkgs=$(echo "scale=1;((${total_packs}-${counter})*100) / $total_packs" | /usr/bin/bc)
+		echo -e "$nc${red}Non-free/libre$nc found packages:   " \
+				"$counter ($(echo "scale=1;$counter*100/${#pkgs[@]}" \
+				| bc)% of total packages)"
+
+		echo -e "$nc${bold}Free/libre$nc alternatives found:   " \
+		"$replacement_counter" \
+		"($(echo "scale=1;$replacement_counter*100/$counter" \
+		| bc)% of non-free/libre packages)"
+
+		free_pkgs=$(echo "scale=1;((${total_packs}-${counter})*100) / \
+		$total_packs" | /usr/bin/bc)
 
 	else
-		echo -e "$nc${bold}Non-free/libre$nc found packages:   $counter ($((counter*100/${#pkgs[@]}))% of total packages)"
-		echo -e "$nc${bold}Free/libre$nc alternatives found:   $replacement_counter ($((replacement_counter*100/$counter))% of non-free/libre packages)"
+		echo -e "$nc${bold}Non-free/libre$nc found packages:   " \
+		"$counter ($((counter*100/${#pkgs[@]}))% of total packages)"
+
+		echo -e "$nc${bold}Free/libre$nc alternatives found:   " \
+		"$replacement_counter ($((replacement_counter*100/$counter))% " \
+		"of non-free/libre packages)"
+
 		free_pkgs=$(echo "$(((total_packs-counter)*100/total_packs))")
 	fi
 
@@ -514,6 +572,8 @@ are free\nRMS smiles!"
 
 #	/usr/bin/rm /tmp/official_pkgs 2>/dev/null
 }
+
+################################
 
 function check_aur ()
 {
@@ -524,7 +584,7 @@ function check_aur ()
 	if [[ $full_bl -eq 0 ]]; then
 		/usr/bin/grep "::::$\|:\[semifree\]\|:\[nonfree\]\|:\[uses-nonfree\]" \
 		"$tmp_file" | /usr/bin/sudo -u "$user" /usr/bin/tee \
-		/tmp/parabola_bl_aur 1>/dev/null
+		/tmp/parabola_bl_aur &>/dev/null
 
 		tmp_file="/tmp/parabola_bl_aur"
 	fi
@@ -553,8 +613,8 @@ function check_aur ()
 	counter="$i"
 
 	if [[ $counter -eq 0 ]]; then
-		echo -e "\e[1A${green}[+]$nc None! All your AUR packages are \
-free!"
+		echo -e "\e[1A${green}[+]$nc None! All your AUR packages are" \
+				"free!"
 		exit $SUCCESS
 	fi
 
@@ -567,11 +627,13 @@ free!"
 	echo -e "${red}Non-free/libre$nc found packages: ${counter}"
 }
 
+################################
+
 function check_repo ()
 {
 	if [[ -z $1 ]]; then
-		echoerr "You must specify a repository\nUsage: $ME -r \
-REPOSITORY\n"
+		echoerr "${ME,,}: You must specify a repository\nUsage: ${ME,,} -r" \
+				"REPOSITORY\n"
 		exit $ERROR
 	fi
 
@@ -588,10 +650,12 @@ REPOSITORY\n"
 	unset repos
 
 	if [[ $repo == "libre" ]]; then
-		echo -e "The [${repo}] repository is supposed to be free from \
-non-free software!\n\n$nc${bold}NOTE$nc: Since many packages in the LIBRE repo have \
-the same name as those in the official repos, running this test upon \
-the [${repo}] repo itself will be riddled with false positives."
+		echo -e "The [$repo] repository is supposed to be free from" \
+				"non-free software!\n\n$nc${bold}NOTE$nc: Since many" \
+				"packages in the [$repo] repo have the same name as those" \
+				"in the official repos, running this test upon the " \
+				"[$repo] repo itself will be riddled with false" \
+				"positives."
 		exit $SUCCESS
 	fi
 
@@ -606,7 +670,7 @@ the [${repo}] repo itself will be riddled with false positives."
 		#+ non-free packs
 		/usr/bin/grep ":\[semifree\]\|:\[nonfree\]\|:\[uses-nonfree\]" \
 		"$tmp_file" | /usr/bin/sudo -u "$user" /usr/bin/tee \
-		/tmp/parabola_bl_official 1>/dev/null
+		/tmp/parabola_bl_official &>/dev/null
 
 		tmp_file="/tmp/parabola_bl_official"
 	fi
@@ -662,8 +726,8 @@ the [${repo}] repo itself will be riddled with false positives."
 	unset IFS
 
 	if [[ $nonfree_counter -eq 0 ]]; then
-		echo -e "${green}[+]$nc ${repo^^} is free from non-free \
-software!"
+		echo -e "${green}[+]$nc ${repo^^} is free from non-free" \
+				"software!"
 		exit $SUCCESS
 	fi
 
@@ -678,12 +742,18 @@ software!"
 	done
 
 	echo -e "\n-------------"
-	echo -e "$nc$bold${repo^^}$nc\n$tab$nonfree_counter/$(/usr/bin/pacman -Sl "$repo" | /usr/bin/wc -l) packages are non-free."
-	echo -e "$tab$nc$bold$alt_counter/$nonfree_counter$nc non-free packages have a free alternative."
+
+	echo -e "$nc$bold${repo^^}$nc\n$tab$nonfree_counter/$(/usr/bin/pacman \
+	-Sl "$repo" | /usr/bin/wc -l) packages are non-free."
+
+	echo -e "$tab$nc$bold$alt_counter/$nonfree_counter$nc non-free" \
+			"packages have a free alternative."
 
 #	/usr/bin/rm -f /tmp/libre.db
 #	/usr/bin/rm -rf /tmp/libre
 }
+
+################################
 
 function check_privacy ()
 {
@@ -715,8 +785,8 @@ function check_privacy ()
 
 	counter="$i"
 	if [[ $counter -eq 0 ]]; then
-		echo -e "\e[1A${green}[+]$nc None! You're free from privacy \
-risking packages!"
+		echo -e "\e[1A${green}[+]$nc None! You're free from privacy" \
+				"risking packages!"
 		exit $SUCCESS
 	fi
 
@@ -725,9 +795,11 @@ risking packages!"
 	fi
 
 	echo -e "\n-------------"
-	echo -e "${red}[+]$nc ${counter}/$(/usr/bin/pacman -Q | /usr/bin/wc -l) \
-packages might be compromizing your privacy."
+	echo -e "${red}[+]$nc ${counter}/$(/usr/bin/pacman -Q | /usr/bin/wc -l)" \
+			"packages might be compromizing your privacy."
 }
+
+################################
 
 function check_init ()
 {
@@ -767,7 +839,8 @@ function check_init ()
 				case $line in
 
 					systemd|systemd-libs)
-						sysd_pkgs[${#sysd_pkgs[*]}]="$(/usr/bin/sed -n '/%NAME%/{n;p}' "$inst_pkg/desc")"
+						sysd_pkgs[${#sysd_pkgs[*]}]="$(/usr/bin/sed -n \
+						'/%NAME%/{n;p}' "$inst_pkg/desc")"
 					;;
 
 					'') break ;;
@@ -789,13 +862,15 @@ function check_init ()
 	fi
 }
 
+################################
+
 function list_systemd ()
 {
 	local repos=( $(/usr/bin/grep "^\[" /etc/pacman.conf \
 	| /usr/bin/grep -v options | /usr/bin/tr -d '[]') )
 
-	echo -e "${blue}::$nc$bold Getting enabled repositories...$nc
-\n${repos[*]}"
+	echo -e "${blue}::$nc$bold Getting enabled repositories...$nc" \
+			"\n${repos[*]}"
 	echo -e "${blue}::$nc$bold Getting systemd packages...$nc "
 
 	local sysd_all=( $(/usr/bin/pacman -Sii systemd systemd-libs \
@@ -803,10 +878,12 @@ function list_systemd ()
 
 	for i in ${sysd_all[*]}; do
 		echo "$i"
-	done | /usr/bin/sort -u | /usr/bin/column
+	done | /usr/bin/sort -u
 
 	echo -e "\nTotal systemd packages: ${#sysd_all[*]}"
 }
+
+################################
 
 function list_official ()
 {
@@ -819,7 +896,7 @@ function list_official ()
 		#+ non-free packs
 		/usr/bin/grep ":\[semifree\]\|:\[nonfree\]\|:\[uses-nonfree\]" \
 		"$tmp_file" | /usr/bin/sudo -u "$user" /usr/bin/tee \
-		/tmp/parabola_bl_official 1>/dev/null
+		/tmp/parabola_bl_official &>/dev/null
 
 		tmp_file="/tmp/parabola_bl_official"
 	fi
@@ -845,14 +922,16 @@ function list_official ()
 	unset IFS
 
 	if [[ $nocolor -eq 0 ]]; then
-		echo -e "\n$nc${bold}Color codes:$nc
-${cyan}Cyan:$nc non-free package
-${magenta}Magenta:$nc free alternative available in Parabola's 'libre' \
-repository
-${d_yellow}Yellow:$nc free alternative only suggested, NOT available \
-in Parabola's 'libre' repository"
+		echo -e "\n$nc${bold}Color codes:$nc" \
+				"\n${cyan}Cyan:$nc non-free package" \
+				"\n${magenta}Magenta:$nc free alternative available" \
+				"in Parabola's 'libre' repository" \
+				"\n${d_yellow}Yellow:$nc free alternative only" \
+				"suggested, NOT available in Parabola's 'libre' repository"
 	fi
 }
+
+################################
 
 function list_aur ()
 {
@@ -865,7 +944,7 @@ function list_aur ()
 		#+ non-free packs
 		/usr/bin/grep "::::$\|:\[semifree\]\|:\[nonfree\]\|:\[uses-nonfree\]" \
 		"$tmp_file" /usr/bin/sudo -u "$user" /usr/bin/tee \
-		/tmp/parabola_bl_aur 1>/dev/null
+		/tmp/parabola_bl_aur &>/dev/null
 
 		tmp_file="/tmp/parabola_bl_aur"
 	fi
@@ -891,14 +970,16 @@ function list_aur ()
 	unset IFS
 
 	if [[ $nocolor -eq 0 ]]; then
-		echo -e "\n$nc${bold}Color codes:$nc
-${cyan}Cyan:$nc non-free package
-${magenta}Magenta:$nc free alternative available in Parabola's 'libre' \
-repository
-${d_yellow}Yellow:$nc free alternative only suggested, NOT available \
-in Parabola's 'libre' repository"
+		echo -e "\n$nc${bold}Color codes:$nc" \
+				"\n${cyan}Cyan:$nc non-free package" \
+				"\n${magenta}Magenta:$nc free alternative available" \
+				"in Parabola's 'libre' repository" \
+				"\n${d_yellow}Yellow:$nc free alternative only" \
+				"suggested, NOT available in Parabola's 'libre' repository"
 	fi
 }
+
+################################
 
 function list_privacy ()
 {
@@ -926,14 +1007,16 @@ function list_privacy ()
 	unset IFS
 
 	if [[ $nocolor -eq 0 ]]; then
-		echo -e "\n$nc${bold}Color codes:$nc
-${cyan}Cyan:$nc non-free package
-${magenta}Magenta:$nc free alternative available in Parabola's 'libre' \
-repository
-${d_yellow}Yellow:$nc free alternative only suggested, NOT available \
-in Parabola's 'libre' repository"
+		echo -e "\n$nc${bold}Color codes:$nc" \
+				"\n${cyan}Cyan:$nc non-free package" \
+				"\n${magenta}Magenta:$nc free alternative" \
+				"available in Parabola's 'libre' repository" \
+				"\n${d_yellow}Yellow:$nc free alternative only" \
+				"suggested, NOT available in Parabola's 'libre' repository"
 	fi
 }
+
+################################
 
 function check_pkg ()
 {
@@ -947,8 +1030,8 @@ function check_pkg ()
 	# Official repos: core extra community multilib testing
 	#+ community-testing multilib-testing gnome-unstable kde-unstable
 	# This condition only checks locally enabled repos!!
-	if [[ $(/usr/bin/pacman -Ss ^${pack}$ \
-	| /usr/bin/grep "core\|extra\|community\|multilib\|testing\|community-testing\|multilib-testing\|gnome-unstable\|kde-unstable") ]]; then
+	if /usr/bin/pacman -Ss ^${pack}$ \
+	| /usr/bin/grep -q "core\|extra\|community\|multilib\|testing\|community-testing\|multilib-testing\|gnome-unstable\|kde-unstable"; then
 		echo "Found"
 
 		tmp_file="/tmp/parabola_bl_official_full"
@@ -958,7 +1041,7 @@ function check_pkg ()
 		if [[ $full_bl -eq 0 ]]; then
 			/usr/bin/grep ":\[semifree\]\|:\[nonfree\]\|:\[uses-nonfree\]" \
 			"$tmp_file" | /usr/bin/sudo -u "$user" /usr/bin/tee \
-			/tmp/parabola_bl_official 1>/dev/null
+			/tmp/parabola_bl_official &>/dev/null
 
 			tmp_file="/tmp/parabola_bl_official"
 		fi
@@ -981,7 +1064,7 @@ function check_pkg ()
 			if [[ $full_bl -eq 0 ]]; then
 				/usr/bin/grep "::::$\|:\[semifree\]\|:\[nonfree\]\|:\[uses-nonfree\]" \
 				"$tmp_file" /usr/bin/sudo -u "$user" /usr/bin/tee \
-				/tmp/parabola_bl_aur 1>/dev/null
+				/tmp/parabola_bl_aur &>/dev/null
 
 				tmp_file="/tmp/parabola_bl_aur"
 			fi
@@ -999,8 +1082,8 @@ function check_pkg ()
 	unset IFS
 
 	if [[ -n $pkg ]]; then
-		echo -ne "$pack is a ${red}non-free$nc package\n${bold}\
-Description:$nc "
+		echo -ne "$pack is a ${red}non-free$nc package\n" \
+				 "${bold}Description:$nc "
 
 		if [[ $nocolor -eq 0 ]]; then
 			export GREP_COLORS="mt=1;36"
@@ -1032,6 +1115,7 @@ Description:$nc "
 					#       MAIN        #
 					#####################
 
+################################
 
 function main ()
 {
@@ -1043,7 +1127,7 @@ function main ()
 	fi
 
 	if ! [[ $(type -P /usr/bin/pacman) ]]; then
-		echoerr "'pacman': Command not found"
+		echoerr "${ME,,}: 'pacman': Command not found"
 		exit $ERROR
 	fi
 
@@ -1074,10 +1158,12 @@ function main ()
 			t) full_bl=1 ;;
 			v) show_version ;;
 			x) list_privacy ;;
-			\?) echoerr "$ME: invalid option -- '$OPTARG'\nTry \
-'$ME -h' for more information" ;;
-			:) echoerr "$ME: option requires an argument -- \
-'$OPTARG'\nTry '$ME -h' for more information" ;;
+			\?) echoerr "${ME,,}: invalid option -- '$OPTARG'\nTry" \
+						"'${ME,,} -h' for more information"
+			;;
+			:) echoerr "${ME,,}: option requires an argument -- " \
+						"'$OPTARG'\nTry '${ME,,} -h' for more information"
+			;;
 		esac
 	done
 
@@ -1085,6 +1171,8 @@ function main ()
 
 	[[ -d /tmp/libre ]] && /usr/bin/rm -rf /tmp/libre
 }
+
+################################
 
 main "$@"
 
