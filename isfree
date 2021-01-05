@@ -82,10 +82,10 @@ nc=""
 ### PROGRAM DATA ###
 
 ME="IsFree"
-VERSION="0.8.12"
-DATE="Jan 4, 2021"
+VERSION="0.8.13"
+DATE="Jan 5, 2021"
 AUTHOR="L. Abramovich"
-LICENSE="GPL2"
+LICENSE="GPL2+"
 WEBSITE="https://github.com/leo-arch/isfree"
 
 ### EXIT CODES ###
@@ -238,7 +238,7 @@ function get_blacklist ()
 					 "blacklist...$nc "
 			/usr/bin/curl -s "$AUR_BLACKLIST" | /usr/bin/sed 's/  //g' \
 			| /usr/bin/grep -v ^'#' | /usr/bin/sudo -u "$user" \
-			/usr/bin/tee "$tmp_file" &>/dev/null
+			/usr/bin/tee "$tmp_file" 1>/dev/null || exit $ERROR
 		;;
 
 		privacy)
@@ -247,7 +247,7 @@ function get_blacklist ()
 			/usr/bin/curl -s "$PRIVACY_BLACKLIST" \
 			| /usr/bin/sed 's/  //g' | /usr/bin/grep -v ^'#' \
 			| /usr/bin/sudo -u "$user" /usr/bin/tee \
-			"$tmp_file" &>/dev/null
+			"$tmp_file" 1>/dev/null || exit $ERROR
 		;;
 
 		*)
@@ -256,22 +256,17 @@ function get_blacklist ()
 			/usr/bin/curl -s "$OFFICIAL_BLACKLIST" \
 			| /usr/bin/sed 's/  //g' | /usr/bin/grep -v ^'#' \
 			| /usr/bin/sudo -u "$user" /usr/bin/tee \
-			"$tmp_file" &>/dev/null
+			"$tmp_file" 1>/dev/null || exit $ERROR
 
 			# Add the AUR blacklist too in case of packages installed
 			#+ from some unofficial repo
 			/usr/bin/curl -s "$AUR_BLACKLIST" | /usr/bin/sed 's/  //g' \
 			| /usr/bin/grep -v ^'#' | /usr/bin/sudo -u "$user" \
-			/usr/bin/tee -a "$tmp_file" &>/dev/null
+			/usr/bin/tee -a "$tmp_file" 1>/dev/null || exit $ERROR
 		;;
 	esac
 
-	if [[ $? -eq 0 ]]; then 
-		echo -e "${green}OK$nc"
-	else
-		echoerr "\n${red}[-]$nc Error downloading file"
-		exit $ERROR
-	fi
+	echo -e "${green}OK$nc"
 }
 
 ################################
@@ -286,16 +281,16 @@ function parabola_repo_download ()
 		-le 86400 ]] &&	return
 	fi
 
-	if /usr/bin/grep -q "^\[libre\]" /etc/pacman.conf 2>/dev/null; then
+	if /usr/bin/grep -q "^\[libre\]" /etc/pacman.conf; then
 
 		echo -ne "${blue}::$nc$bold Getting packages from [libre]" \
 				 "repo...$nc "
 
-		if /usr/bin/pacman -Sl libre | /usr/bin/awk '{print $2"-"$3}' \
+		/usr/bin/pacman -Sl libre | /usr/bin/awk '{print $2"-"$3}' \
 		| /usr/bin/sudo -u "$user" /usr/bin/tee \
-		/tmp/libre_repo_pkgs &>/dev/null; then
-			echo -e "${green}OK$nc"
-		fi
+		/tmp/libre_repo_pkgs 1>/dev/null || exit $ERROR
+
+		echo -e "${green}OK$nc"
 
 		return $SUCCESS
 	fi
@@ -317,12 +312,15 @@ function parabola_repo_download ()
 		exit $ERROR
 	fi
 
-	! [[ -d /tmp/libre ]] && /usr/bin/mkdir -p /tmp/libre
+	if ! [[ -d /tmp/libre ]]; then
+		/usr/bin/mkdir -p /tmp/libre || exit $ERROR
+	fi
 
-	/usr/bin/tar xvfz /tmp/libre.db -C /tmp/libre &>/dev/null
+	/usr/bin/tar xvfz /tmp/libre.db -C /tmp/libre 1>/dev/null \
+	|| exit $ERROR
 
 	/usr/bin/ls /tmp/libre | /usr/bin/sudo -u "$user" \
-	/usr/bin/tee /tmp/libre_repo_pkgs &>/dev/null
+	/usr/bin/tee /tmp/libre_repo_pkgs 1>/dev/null || exit $ERROR
 }
 
 ################################
@@ -475,7 +473,7 @@ function check_native ()
 		#+ non-free packs
 		/usr/bin/grep ":\[semifree\]\|:\[nonfree\]\|:\[uses-nonfree\]\|::::$" \
 		"$tmp_file" | /usr/bin/sudo -u "$user" /usr/bin/tee \
-		/tmp/parabola_bl_official &>/dev/null
+		/tmp/parabola_bl_official 1>/dev/null || exit $ERROR
 
 		tmp_file="/tmp/parabola_bl_official"
 	fi
@@ -584,7 +582,7 @@ function check_aur ()
 	if [[ $full_bl -eq 0 ]]; then
 		/usr/bin/grep "::::$\|:\[semifree\]\|:\[nonfree\]\|:\[uses-nonfree\]" \
 		"$tmp_file" | /usr/bin/sudo -u "$user" /usr/bin/tee \
-		/tmp/parabola_bl_aur &>/dev/null
+		/tmp/parabola_bl_aur 1>/dev/null || exit $ERROR
 
 		tmp_file="/tmp/parabola_bl_aur"
 	fi
@@ -670,7 +668,7 @@ function check_repo ()
 		#+ non-free packs
 		/usr/bin/grep ":\[semifree\]\|:\[nonfree\]\|:\[uses-nonfree\]" \
 		"$tmp_file" | /usr/bin/sudo -u "$user" /usr/bin/tee \
-		/tmp/parabola_bl_official &>/dev/null
+		/tmp/parabola_bl_official 1>/dev/null || exit $ERROR
 
 		tmp_file="/tmp/parabola_bl_official"
 	fi
@@ -719,7 +717,7 @@ function check_repo ()
 		fi
 
 		nonfree_counter=$((nonfree_counter+1))
-	done < /tmp/non_free_repo
+	done < "/tmp/non_free_repo"
 
 	/usr/bin/rm /tmp/non_free_repo
 
@@ -896,7 +894,7 @@ function list_official ()
 		#+ non-free packs
 		/usr/bin/grep ":\[semifree\]\|:\[nonfree\]\|:\[uses-nonfree\]" \
 		"$tmp_file" | /usr/bin/sudo -u "$user" /usr/bin/tee \
-		/tmp/parabola_bl_official &>/dev/null
+		/tmp/parabola_bl_official 1>/dev/null || exit $ERROR
 
 		tmp_file="/tmp/parabola_bl_official"
 	fi
@@ -944,7 +942,7 @@ function list_aur ()
 		#+ non-free packs
 		/usr/bin/grep "::::$\|:\[semifree\]\|:\[nonfree\]\|:\[uses-nonfree\]" \
 		"$tmp_file" /usr/bin/sudo -u "$user" /usr/bin/tee \
-		/tmp/parabola_bl_aur &>/dev/null
+		/tmp/parabola_bl_aur 1>/dev/null || exit $ERROR
 
 		tmp_file="/tmp/parabola_bl_aur"
 	fi
@@ -1039,9 +1037,10 @@ function check_pkg ()
 		get_blacklist
 
 		if [[ $full_bl -eq 0 ]]; then
+
 			/usr/bin/grep ":\[semifree\]\|:\[nonfree\]\|:\[uses-nonfree\]" \
 			"$tmp_file" | /usr/bin/sudo -u "$user" /usr/bin/tee \
-			/tmp/parabola_bl_official &>/dev/null
+			/tmp/parabola_bl_official 1>/dev/null
 
 			tmp_file="/tmp/parabola_bl_official"
 		fi
@@ -1062,12 +1061,14 @@ function check_pkg ()
 			get_blacklist "aur"
 
 			if [[ $full_bl -eq 0 ]]; then
+
 				/usr/bin/grep "::::$\|:\[semifree\]\|:\[nonfree\]\|:\[uses-nonfree\]" \
-				"$tmp_file" /usr/bin/sudo -u "$user" /usr/bin/tee \
-				/tmp/parabola_bl_aur &>/dev/null
+				"$tmp_file" | /usr/bin/sudo -u "$user" /usr/bin/tee \
+				/tmp/parabola_bl_aur 1>/dev/null
 
 				tmp_file="/tmp/parabola_bl_aur"
 			fi
+
 		else
 			echo "Not found"
 			exit $ERROR
@@ -1167,9 +1168,13 @@ function main ()
 		esac
 	done
 
-	[[ -f /tmp/libre.db ]] && /usr/bin/rm -f /tmp/libre.db
+	if [[ -f /tmp/libre.db ]]; then
+		/usr/bin/rm -f /tmp/libre.db || exit $ERROR
+	fi
 
-	[[ -d /tmp/libre ]] && /usr/bin/rm -rf /tmp/libre
+	if [[ -d /tmp/libre ]]; then
+		/usr/bin/rm -rf /tmp/libre || exit $ERROR
+	fi
 }
 
 ################################
