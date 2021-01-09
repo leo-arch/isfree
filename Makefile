@@ -1,4 +1,4 @@
-PREFIX = /usr/local/bin
+PREFIX = /usr/bin
 PROG = isfree
 
 install:
