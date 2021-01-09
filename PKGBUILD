@@ -2,8 +2,8 @@
 
 pkgname=isfree
 pkgver=0.8.13
-pkgrel=1
-pkgdesc="Check for non-free software in your Arch Linux system"
+pkgrel=3
+pkgdesc="Check your Arch system for non-free/libre software"
 arch=(any)
 url="https://github.com/leo-arch/isfree"
 license=(GPL2)
@@ -14,6 +14,6 @@ source=("git+${url}.git")
 sha256sums=('SKIP')
 
 package() {
-  cd "${srcdir}/${pkgname}"
-  install -Dm755 $pkgname "${pkgdir}/usr/bin/$pkgname"
+  cd "$srcdir/$pkgname"
+  install -Dm755 "$pkgname" "$pkgdir/usr/bin/$pkgname"
 }
