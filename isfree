@@ -1023,7 +1023,7 @@ function check_pkg ()
 
 	# Check official repositories
 
-	echo -ne "${blue}::$nc$bold Cheking enabled official repositories...$nc "
+	echo -ne "${blue}::$nc$bold Checking enabled official repositories...$nc "
 
 	# Official repos: core extra community multilib testing
 	#+ community-testing multilib-testing gnome-unstable kde-unstable
