@@ -425,9 +425,9 @@ function free_alternative ()
 		"^${alternative}-[0-9]" /tmp/libre_repo_pkgs)"
 
 		if [[ -n $alternative_version ]]; then
-			echo -e "Free alternative: $alternative_version"
+			echo -e "   Free alternative: $alternative_version"
 		else
-			echo -e "Free alternative: $alternative"
+			echo -e "   Free alternative: $alternative"
 		fi
 
 	else
@@ -697,7 +697,7 @@ function check_repo ()
 
 	parabola_repo_download
 
-	echo -e "Non-free packages in $nc${bold}'$repo'$nc repository:\n"
+	echo -e "Non-free packages in repository $nc${bold}[$repo]${nc}:\n"
 
 	nonfree_counter=0; alt_counter=0
 	fix_doc=0; nonfree=0; semifree=0; technical=0; no_desc=0;
@@ -722,9 +722,9 @@ function check_repo ()
 			/tmp/libre_repo_pkgs)"
 
 			if [[ -n $alt_version ]]; then
-				echo -e "$$nc{bold}Free alternative:$nc $alt_version"
+				echo -e "$nc$bold   Free alternative:$nc $alt_version"
 			else
-				echo -e "$nc${bold}Free alternative:$nc $alt"
+				echo -e "$nc$bold   Free alternative:$nc $alt"
 			fi
 
 		else
@@ -1097,7 +1097,7 @@ function check_pkg ()
 
 	if [[ -n $pkg ]]; then
 		echo -ne "$nc$bold$pack$nc is a ${red}non-free$nc package\n" \
-				 "\rDescription:$nc "
+				 "  Description:$nc "
 
 		if [[ $nocolor -eq 0 ]]; then
 			export GREP_COLORS="mt=1;36"
@@ -1117,7 +1117,7 @@ function check_pkg ()
 		free_alternative "$pkg"
 
 		if [[ $replacement_counter -eq 0 ]]; then
-			echo -e "No free/libre alternative for this package (yet)."
+			echo -e "   No free/libre alternative for this package (yet)."
 		fi
 
 	else
