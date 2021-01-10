@@ -76,8 +76,8 @@ nc=""
 ### PROGRAM DATA ###
 
 ME="IsFree"
-VERSION="0.8.14"
-DATE="Jan 9, 2021"
+VERSION="0.8.15"
+DATE="Jan 10, 2021"
 AUTHOR="L. Abramovich"
 LICENSE="GPL2+"
 WEBSITE="https://github.com/leo-arch/isfree"
@@ -187,7 +187,7 @@ for them.${cyan} When users don't control the program, we call it \
 a \"nonfree\" or proprietary program. The nonfree program controls the \
 users, and the developer controls the program; this makes the program an \
 instrument of unjust power${nc}.
-A program is free software if the program's users have the ${yellow}four \
+A program is free software if the program's users have the $nc${bold}four \
 essential freedoms:$nc
 
 ${cyan}-The freedom to run the program as you wish, for any purpose \
@@ -1032,97 +1032,104 @@ function list_privacy ()
 
 function check_pkg ()
 {
-	local pack=${1,,} replacement_counter=0
+	local packs=( "$@" ) replacement_counter=0
 
-	# Check official repositories
+	for pack in ${packs[*]}; do
 
-	echo -ne "${blue}::$nc$bold Cheking enabled official repositories...$nc "
+		[[ $pack == "-"* ]] && return
 
-	# Official repos: core extra community multilib testing
-	#+ community-testing multilib-testing gnome-unstable kde-unstable
-	# This condition only checks locally enabled repos!!
-	if /usr/bin/pacman -Ss "^${pack}$" \
-	| /usr/bin/grep -q ^"core\|extra\|community\|multilib\|testing\|community-testing\|multilib-testing\|gnome-unstable\|kde-unstable"/ ; then
-		echo "Found"
+		replacement_counter=0
 
-		tmp_file="/tmp/parabola_bl_official_full"
+		# Check official repositories
 
-		get_blacklist
+		echo -ne "${blue}::$nc$bold Cheking enabled official repositories...$nc "
 
-		if [[ $full_bl -eq 0 ]]; then
-
-			/usr/bin/grep ":\[semifree\]\|:\[nonfree\]\|:\[uses-nonfree\]" \
-			"$tmp_file" | /usr/bin/sudo -u "$user" /usr/bin/tee \
-			/tmp/parabola_bl_official 1>/dev/null
-
-			tmp_file="/tmp/parabola_bl_official"
-		fi
-
-	# Check the AUR
-	# NOTE: The following curl line is able to found AUR packages
-	#+ hidden from the AUR web interface!! Example: your-freedom
-	else
-		echo "Not found"
-		echo -ne "${blue}::$nc$bold Checking the AUR...$nc "
-
-		if /usr/bin/curl --output /dev/null --silent --head --fail \
-		https://aur.archlinux.org/cgit/aur.git/snapshot/"$pack".tar.gz; then
+		# Official repos: core extra community multilib testing
+		#+ community-testing multilib-testing gnome-unstable kde-unstable
+		# This condition only checks locally enabled repos!!
+		if /usr/bin/pacman -Ss "^${pack}$" \
+		| /usr/bin/grep -q ^"core\|extra\|community\|multilib\|testing\|community-testing\|multilib-testing\|gnome-unstable\|kde-unstable"/ ; then
 			echo "Found"
 
-			tmp_file="/tmp/parabola_bl_aur_full"
+			tmp_file="/tmp/parabola_bl_official_full"
 
-			get_blacklist "aur"
+			get_blacklist
 
 			if [[ $full_bl -eq 0 ]]; then
 
-				/usr/bin/grep "::::$\|:\[semifree\]\|:\[nonfree\]\|:\[uses-nonfree\]" \
+				/usr/bin/grep ":\[semifree\]\|:\[nonfree\]\|:\[uses-nonfree\]" \
 				"$tmp_file" | /usr/bin/sudo -u "$user" /usr/bin/tee \
-				/tmp/parabola_bl_aur 1>/dev/null
+				/tmp/parabola_bl_official 1>/dev/null
 
-				tmp_file="/tmp/parabola_bl_aur"
+				tmp_file="/tmp/parabola_bl_official"
 			fi
 
+		# Check the AUR
+		# NOTE: The following curl line is able to found AUR packages
+		#+ hidden from the AUR web interface!! Example: your-freedom
 		else
 			echo "Not found"
-			exit $ERROR
-		fi
-	fi
+			echo -ne "${blue}::$nc$bold Checking the AUR...$nc "
 
-	parabola_repo_download
+			if /usr/bin/curl --output /dev/null --silent --head --fail \
+			https://aur.archlinux.org/cgit/aur.git/snapshot/"$pack".tar.gz; then
+				echo "Found"
 
-	IFS=":"
-	read -r pkg alt ref id desc < <(/usr/bin/grep -m1 ^"${pack}": \
-	"$tmp_file")
-	unset IFS
+				tmp_file="/tmp/parabola_bl_aur_full"
 
-	if [[ -n $pkg ]]; then
-		echo -ne "$nc$bold$pack$nc is a ${red}non-free$nc package\n" \
-				 "  Description:$nc "
+				get_blacklist "aur"
 
-		if [[ $nocolor -eq 0 ]]; then
-			export GREP_COLORS="mt=1;36"
+				if [[ $full_bl -eq 0 ]]; then
 
-			if [[ -n $desc ]]; then
-				echo "$desc" \
-				| /usr/bin/grep --color=always "\[technical\]\|\[branding\]\|\[nonfree\]\|\[semifree\]\|\[uses-nonfree\]\|\[recommends-nonfree\]\|\[FIXME:description\]\|\[FIXME:package\]"
+					/usr/bin/grep "::::$\|:\[semifree\]\|:\[nonfree\]\|:\[uses-nonfree\]" \
+					"$tmp_file" | /usr/bin/sudo -u "$user" /usr/bin/tee \
+					/tmp/parabola_bl_aur 1>/dev/null
+
+					tmp_file="/tmp/parabola_bl_aur"
+				fi
+
 			else
-				echo "None"
+				echo "Not found"
+				exit $ERROR
+			fi
+		fi
+
+		parabola_repo_download
+
+		IFS=":"
+		read -r pkg alt ref id desc < <(/usr/bin/grep -m1 ^"${pack}": \
+		"$tmp_file")
+		unset IFS
+
+		if [[ -n $pkg ]]; then
+			echo -ne "$nc$bold$pack$nc is a ${red}non-free$nc package\n" \
+					 "  Description:$nc "
+
+			if [[ $nocolor -eq 0 ]]; then
+				export GREP_COLORS="mt=1;36"
+
+				if [[ -n $desc ]]; then
+					echo "$desc" \
+					| /usr/bin/grep --color=always "\[technical\]\|\[branding\]\|\[nonfree\]\|\[semifree\]\|\[uses-nonfree\]\|\[recommends-nonfree\]\|\[FIXME:description\]\|\[FIXME:package\]"
+				else
+					echo "None"
+				fi
+
+				unset GREP_COLORS
+			else
+				echo "$desc"
 			fi
 
-			unset GREP_COLORS
+			free_alternative "$pkg"
+
+			if [[ $replacement_counter -eq 0 ]]; then
+				echo -e "   No free/libre alternative for this package (yet)."
+			fi
+
 		else
-			echo "$desc"
+			echo -e "$nc${bold}$pack$nc is ${green}not blacklisted$nc"
 		fi
-
-		free_alternative "$pkg"
-
-		if [[ $replacement_counter -eq 0 ]]; then
-			echo -e "   No free/libre alternative for this package (yet)."
-		fi
-
-	else
-		echo -e "${green}[+]$nc '$pack' is not blacklisted"
-	fi
+	done
 
 #	/usr/bin/rm -f /tmp/libre.db
 #	/usr/bin/rm -rf /tmp/libre
@@ -1172,7 +1179,14 @@ function main ()
 			n) check_native ;;
 			p) check_privacy ;;
 			r) check_repo "$OPTARG" ;;
-			s) check_pkg "$OPTARG" ;;
+			s)
+				# $OPTARG contains only one argument, the first, passed
+				#+ to the corresponding option, here -s. However, since
+				#+ we need to check here multiple arguments, we move on
+				#+ to the next argument (with shift), and then pass
+				#+ everything else to our function. 
+				shift
+				check_pkg "$@" ;;
 			t) full_bl=1 ;;
 			v) show_version ;;
 			x) list_privacy ;;
