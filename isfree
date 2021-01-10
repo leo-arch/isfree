@@ -82,8 +82,8 @@ nc=""
 ### PROGRAM DATA ###
 
 ME="IsFree"
-VERSION="0.8.13"
-DATE="Jan 5, 2021"
+VERSION="0.8.14"
+DATE="Jan 9, 2021"
 AUTHOR="L. Abramovich"
 LICENSE="GPL2+"
 WEBSITE="https://github.com/leo-arch/isfree"
@@ -373,6 +373,42 @@ function blacklist_line ()
 	fi
 }
 
+function extra_alternatives ()
+{
+	local alternative_b=""
+	declare -r pkg="$1"
+
+	case $pkg in
+
+		firefox|"firefox-dev"*|"firefox-i18n"*\
+		|"firefox-beta"*|opera|chromium|"chromium-browser"*\
+		|"google-chrome"*|vivaldi|falkon|seamonkey)
+			alternative_b="icecat, iceweasel"
+		;;
+
+		"virtualbox"*|vmware-workstation) alternative_b="qemu" ;;
+
+		"acroread"*|foxitreader) alternative_b="mupdf-gl" ;;
+
+		dropbox) alternative_b="nextcloud" ;;
+
+		atom|electron) alternative_b="eclipse, geany" ;;
+
+		"nvidia"*) alternative_b="xf86-video-nouveau" ;;
+
+		wps-office) alternative_b="libreoffice-fresh" ;;
+
+		acetoneiso2) alternative_b="brasero, graveman, simpleburn" ;;
+
+		clonezilla) alternative_b="mondo, partclone, partimage" ;;
+
+		krusader) alternative_b="mc (from [libre])" ;;
+
+	esac
+
+	echo "$alternative_b"
+}
+
 ################################
 
 function free_alternative ()
@@ -383,19 +419,9 @@ function free_alternative ()
 	local alternative="$(/usr/bin/awk -F':' -v var="$pack" \
 	'{ if ($1 == var) print $2 }' "$tmp_file")"
 
-	case $pack in
-
-		firefox|chromium|opera)
-			alternative="icecat" ;;
-
-		vmware|virtualbox)
-			alternative="qemu" ;;
-
-		wps-office|yozo-office)
-			alternative="libreoffice" ;;
-
-		*) ;;
-	esac
+	if [[ -z $alternative ]]; then
+		alternative="$(extra_alternatives "$pack")"
+	fi
 
 	# If an alternative pkg was found, check the libre repo to find
 	#+ the current version of this pkg
@@ -406,9 +432,9 @@ function free_alternative ()
 		"^${alternative}-[0-9]" /tmp/libre_repo_pkgs)"
 
 		if [[ -n $alternative_version ]]; then
-			echo -e "$tab${bold}Free alternative: $nc$alternative_version"
+			echo -e "Free alternative: $alternative_version"
 		else
-			echo -e "$tab${bold}Free alternative: $nc$alternative"
+			echo -e "Free alternative: $alternative"
 		fi
 
 	else
@@ -543,11 +569,11 @@ function check_native ()
 	echo -e "Total installed native packages: ${total_packs}"
 
 	if [[ $(type -P /usr/bin/bc) ]]; then
-		echo -e "$nc${red}Non-free/libre$nc found packages:   " \
+		echo -e "$nc${red}Non-free/libre$nc found packages:  " \
 				"$counter ($(echo "scale=1;$counter*100/${#pkgs[@]}" \
 				| bc)% of total packages)"
 
-		echo -e "$nc${bold}Free/libre$nc alternatives found:   " \
+		echo -e "$nc${bold}Free/libre$nc alternatives found:  " \
 		"$replacement_counter" \
 		"($(echo "scale=1;$replacement_counter*100/$counter" \
 		| bc)% of non-free/libre packages)"
@@ -640,8 +666,8 @@ function check_repo ()
 
 	local repo=${1,,}
 
-	if [[ ${repos[@]} != *"$repo"* ]]; then
-		echoerr "${red}[-]$nc '$repo': No such repository"
+	if [[ ${repos[*]} != *"$repo"* ]]; then
+		echoerr "${ME,,}: '$repo': No such repository"
 		exit $ERROR
 	fi
 
@@ -680,7 +706,7 @@ function check_repo ()
 	nonfree_counter=0; alt_counter=0
 	fix_doc=0; nonfree=0; semifree=0; technical=0; no_desc=0;
 
-	for (( i=0;i<${#pkgs[@]};i=$((i+20)) )); do
+	for (( i=0;i<${#pkgs[*]};i=$((i+20)) )); do
 		/usr/bin/grep "^${pkgs[$i]}:\|^${pkgs[$((i+1))]}:\|^${pkgs[$((i+2))]}:\|^${pkgs[$((i+3))]}:\|^${pkgs[$((i+4))]}:\|^${pkgs[$((i+5))]}:\|^${pkgs[$((i+6))]}:\|^${pkgs[$((i+7))]}:\|^${pkgs[$((i+8))]}:\|^${pkgs[$((i+9))]}:\|^${pkgs[$((i+10))]}:\|^${pkgs[$((i+11))]}:\|^${pkgs[$((i+12))]}:\|^${pkgs[$((i+13))]}:\|^${pkgs[$((i+14))]}:\|^${pkgs[$((i+15))]}:\|^${pkgs[$((i+16))]}:\|^${pkgs[$((i+17))]}:\|^${pkgs[$((i+18))]}:\|^${pkgs[$((i+19))]}:" "$tmp_file"
 	done > /tmp/non_free_repo
 
@@ -691,14 +717,7 @@ function check_repo ()
 
 		blacklist_line ${pkg} $((nonfree_counter+1))
 
-		case $pkg in
-
-			firefox|chromium|opera)
-				alt="icecat" ;;
-
-			vmware|virtualbox)
-				alt="qemu" ;;
-		esac
+		alt="$(extra_alternatives "$pkg")"
 
 		if [[ -n $alt ]]; then
 
@@ -713,10 +732,10 @@ function check_repo ()
 			fi
 
 		else
-			no_alternative[${#no_alternative[@]}]=$pkg
+			no_alternative[${#no_alternative[*]}]=$pkg
 		fi
 
-		nonfree_counter=$((nonfree_counter+1))
+		(( nonfree_counter++ ))
 	done < "/tmp/non_free_repo"
 
 	/usr/bin/rm /tmp/non_free_repo
@@ -736,15 +755,15 @@ function check_repo ()
 	echo -e "\nPackages with no free alternatives (yet):"
 
 	for (( i=0;i<${#no_alternative[@]};i++ )); do
-		echo -e "$nc${bold}$((i+1))$nc) ${no_alternative[$i]}"
+		echo -e "$nc$bold$((i+1))$nc) ${no_alternative[$i]}"
 	done
 
 	echo -e "\n-------------"
 
-	echo -e "$nc$bold${repo^^}$nc\n$tab$nonfree_counter/$(/usr/bin/pacman \
+	echo -e "$nc$bold[${repo,,}]$nc\n$nonfree_counter/$(/usr/bin/pacman \
 	-Sl "$repo" | /usr/bin/wc -l) packages are non-free."
 
-	echo -e "$tab$nc$bold$alt_counter/$nonfree_counter$nc non-free" \
+	echo -e "$alt_counter/$nonfree_counter non-free" \
 			"packages have a free alternative."
 
 #	/usr/bin/rm -f /tmp/libre.db
@@ -793,7 +812,7 @@ function check_privacy ()
 	fi
 
 	echo -e "\n-------------"
-	echo -e "${red}[+]$nc ${counter}/$(/usr/bin/pacman -Q | /usr/bin/wc -l)" \
+	echo -e "${red}[-]$nc ${counter}/$(/usr/bin/pacman -Q | /usr/bin/wc -l)" \
 			"packages might be compromizing your privacy."
 }
 
@@ -911,7 +930,7 @@ function list_official ()
 		echo -e "${yellow}$((counter+1))$nc) ${cyan}${pkg}: $nc$desc"
 
 		if [[ -n $alt ]]; then
-			echo -e "$tab$nc${bold}Free alternative:$nc $alt" 
+			echo -e "$nc${bold}Free alternative:$nc $alt" 
 		fi
 
 		counter=$((counter+1))
@@ -923,9 +942,9 @@ function list_official ()
 		echo -e "\n$nc${bold}Color codes:$nc" \
 				"\n${cyan}Cyan:$nc non-free package" \
 				"\n${magenta}Magenta:$nc free alternative available" \
-				"in Parabola's 'libre' repository" \
+				"in Parabola's [libre] repository" \
 				"\n${d_yellow}Yellow:$nc free alternative only" \
-				"suggested, NOT available in Parabola's 'libre' repository"
+				"suggested, NOT available in Parabola's [libre] repository"
 	fi
 }
 
@@ -941,7 +960,7 @@ function list_aur ()
 		# By default, remove all branding and merely technical
 		#+ non-free packs
 		/usr/bin/grep "::::$\|:\[semifree\]\|:\[nonfree\]\|:\[uses-nonfree\]" \
-		"$tmp_file" /usr/bin/sudo -u "$user" /usr/bin/tee \
+		"$tmp_file" | /usr/bin/sudo -u "$user" /usr/bin/tee \
 		/tmp/parabola_bl_aur 1>/dev/null || exit $ERROR
 
 		tmp_file="/tmp/parabola_bl_aur"
@@ -959,7 +978,7 @@ function list_aur ()
 		echo -e "${yellow}$((counter+1))$nc) ${cyan}$pkg: $nc$desc"
 
 		if [[ -n $alt ]]; then
-			echo -e "$tab${white}Free alternative: ${blue}$alt$nc"
+			echo -e "$nc${bold}Free alternative: ${blue}$alt$nc"
 		fi
 
 		counter=$((counter+1))
@@ -971,9 +990,9 @@ function list_aur ()
 		echo -e "\n$nc${bold}Color codes:$nc" \
 				"\n${cyan}Cyan:$nc non-free package" \
 				"\n${magenta}Magenta:$nc free alternative available" \
-				"in Parabola's 'libre' repository" \
+				"in Parabola's [libre] repository" \
 				"\n${d_yellow}Yellow:$nc free alternative only" \
-				"suggested, NOT available in Parabola's 'libre' repository"
+				"suggested, NOT available in Parabola's [libre] repository"
 	fi
 }
 
@@ -996,7 +1015,7 @@ function list_privacy ()
 		echo -e "${yellow}$((counter+1))$nc) $pkg: $desc"
 
 		if [[ -n $alt ]]; then
-			echo -e "$tab$nc${bold}Secure alternative: $alt"
+			echo -e "$nc${bold}Secure alternative: $alt"
 		fi
 
 		(( counter++ ))
@@ -1008,9 +1027,9 @@ function list_privacy ()
 		echo -e "\n$nc${bold}Color codes:$nc" \
 				"\n${cyan}Cyan:$nc non-free package" \
 				"\n${magenta}Magenta:$nc free alternative" \
-				"available in Parabola's 'libre' repository" \
+				"available in Parabola's [libre] repository" \
 				"\n${d_yellow}Yellow:$nc free alternative only" \
-				"suggested, NOT available in Parabola's 'libre' repository"
+				"suggested, NOT available in Parabola's [libre] repository"
 	fi
 }
 
@@ -1023,7 +1042,7 @@ function check_pkg ()
 
 	# Check official repositories
 
-	echo -ne "${blue}::$nc$bold Checking enabled official repositories...$nc "
+	echo -ne "${blue}::$nc$bold Cheking enabled official repositories...$nc "
 
 	# Official repos: core extra community multilib testing
 	#+ community-testing multilib-testing gnome-unstable kde-unstable
@@ -1083,14 +1102,18 @@ function check_pkg ()
 	unset IFS
 
 	if [[ -n $pkg ]]; then
-		echo -ne "$pack is a ${red}non-free$nc package\n" \
-				 "${bold}Description:$nc "
+		echo -ne "$nc$bold$pack$nc is a ${red}non-free$nc package\n" \
+				 "\rDescription:$nc "
 
 		if [[ $nocolor -eq 0 ]]; then
 			export GREP_COLORS="mt=1;36"
 
-			echo "$desc" \
-			| /usr/bin/grep --color "\[technical\]\|\[branding\]\|\[nonfree\]\|\[semifree\]\|\[uses-nonfree\]\|\[recommends-nonfree\]\|\[FIXME:description\]\|\[FIXME:package\]"
+			if [[ -n $desc ]]; then
+				echo "$desc" \
+				| /usr/bin/grep --color "\[technical\]\|\[branding\]\|\[nonfree\]\|\[semifree\]\|\[uses-nonfree\]\|\[recommends-nonfree\]\|\[FIXME:description\]\|\[FIXME:package\]"
+			else
+				echo "None"
+			fi
 
 			unset GREP_COLORS
 		else
@@ -1100,7 +1123,7 @@ function check_pkg ()
 		free_alternative "$pkg"
 
 		if [[ $replacement_counter -eq 0 ]]; then
-			echo -e "${tab}No free/libre alternative for this package (yet)."
+			echo -e "No free/libre alternative for this package (yet)."
 		fi
 
 	else
