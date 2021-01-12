@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
 
 #  This program is free software; you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
-#  the Free Software Foundation; either version 2 of the License, or
-#  (at your option) any later version.
+#  it under the terms of the second version of the GNU General Public
+#  License as published by the Free Software Foundation.
 #
 #  This program is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -79,7 +78,7 @@ ME="IsFree"
 VERSION="0.8.15"
 DATE="Jan 10, 2021"
 AUTHOR="L. Abramovich"
-LICENSE="GPL2+"
+LICENSE="GPL2"
 WEBSITE="https://github.com/leo-arch/isfree"
 
 ### EXIT CODES ###
@@ -519,7 +518,7 @@ function check_native ()
 	# This is fast! But there should be a still better solution for
 	#+ this
 	non_free=( $(for ((i=0;i<${#pkgs[*]};i=$((i+20)))); do
-		/usr/bin/grep "^${pkgs[$i]}:\|^${pkgs[$((i+1))]}:\|^${pkgs[$((i+2))]}:\|^${pkgs[$((i+3))]}:\|^${pkgs[$((i+4))]}:\|^${pkgs[$((i+5))]}:\|^${pkgs[$((i+6))]}:\|^${pkgs[$((i+7))]}:\|^${pkgs[$((i+8))]}:\|^${pkgs[$((i+9))]}:\|^${pkgs[$((i+10))]}:\|^${pkgs[$((i+11))]}:\|^${pkgs[$((i+12))]}:\|^${pkgs[$((i+13))]}:\|^${pkgs[$((i+14))]}:\|^${pkgs[$((i+15))]}:\|^${pkgs[$((i+16))]}:\|^${pkgs[$((i+17))]}:\|^${pkgs[$((i+18))]}:\|^${pkgs[$((i+19))]}:" "$tmp_file" | awk -F':' '{print $1}'
+		/usr/bin/grep "^${pkgs[$i]}:\|^${pkgs[$((i+1))]}:\|^${pkgs[$((i+2))]}:\|^${pkgs[$((i+3))]}:\|^${pkgs[$((i+4))]}:\|^${pkgs[$((i+5))]}:\|^${pkgs[$((i+6))]}:\|^${pkgs[$((i+7))]}:\|^${pkgs[$((i+8))]}:\|^${pkgs[$((i+9))]}:\|^${pkgs[$((i+10))]}:\|^${pkgs[$((i+11))]}:\|^${pkgs[$((i+12))]}:\|^${pkgs[$((i+13))]}:\|^${pkgs[$((i+14))]}:\|^${pkgs[$((i+15))]}:\|^${pkgs[$((i+16))]}:\|^${pkgs[$((i+17))]}:\|^${pkgs[$((i+18))]}:\|^${pkgs[$((i+19))]}:" "$tmp_file" | /usr/bin/cut -d":" -f1
 		done) )
 
 	for (( i=0;i<${#non_free[*]};i++ )); do
