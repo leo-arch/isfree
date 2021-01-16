@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+						################
+						#    ISFREE    #
+						################
+
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the second version of the GNU General Public
 #  License as published by the Free Software Foundation.
@@ -13,20 +17,21 @@
 #  along with this program; if not, write to the Free Software
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #  MA 02110-1301, USA.
-#
+
 
 ### DESCRIPTION ###
 
 # This script is mainly intended to find out whether there is non-free/libre
 #+ software in your Arch Linux machine, and, if any, to suggest a free
 #+ alternative. It uses Parabola's blacklists to perform the tests.
+#+ Since version 0.8.7 I added an option (-i) to list all the
+#+ installed systemd packages (supporting the init freedom campaing).
 
-#Blacklists can be found at:
-#  https://git.parabola.nu/blacklist.git/plain/blacklist.txt
-#or, for the AUR blacklist:
-#  https://git.parabola.nu/blacklist.git/plain/aur-blacklist.txt
-#or, for the privacy blacklist:
-#  https://git.parabola.nu/blacklist.git/plain/your-privacy-blacklist.txt
+# As a side note: I do not use here Parabola's
+#+ your-initfreedom-blacklist, since it is just a fixed, and quite
+#+ incomplete, list of packages names. By contrast, I list systemd
+#+ packages dynamically, that is, parsing the local pacman
+#+ database looking for packages deps, and not their names.
 
 # NOTE: GitHub (https://github.com/duckinator/check-free.git) has a script
 #+ called 'check-free' (written by Nick Marwell (duckinator)), which is
@@ -37,25 +42,6 @@
 #+ developed by vmavromatis, which does the same thing as my script:
 #+ checking Arch Linux installed packages against Parabola's blacklists.
 #+ See https://github.com/vmavromatis/absolutely-proprietary
-
-# More Parabola's blacklists:
-# emulator-blacklist: https://git.parabola.nu/blacklist.git/plain/your-freedom_emu-blacklist.txt
-
-# A whitelist of GNU approved (free) software could be found here:
-#+ http://www.gnu.org/software/
-
-# A list of free software ordered by categories is available at:
-#+ http://directory.fsf.org/wiki/Main_Page
-
-# NOTE: I use 'bc', if available, for a few floating point operations.
-
-# Since version 0.8.7-1 I added an option (-i) to list all the
-#+ installed systemd packages (supporting the init freedom campaing).
-#+ As a side note: I do not use here Parabola's
-#+ your-initfreedom-blacklist, since it is just a fixed, and quite
-#+ incomplete, list of packages names. By contrast, I list systemd
-#+ packages dynamically, that is, parsing the local pacman
-#+ database looking for packages deps, and not their names.
 
 
 ### COLORS ###
@@ -91,6 +77,14 @@ ERROR=1
 OFFICIAL_BLACKLIST="https://git.parabola.nu/blacklist.git/plain/blacklist.txt"
 AUR_BLACKLIST="https://git.parabola.nu/blacklist.git/plain/aur-blacklist.txt"
 PRIVACY_BLACKLIST="https://git.parabola.nu/blacklist.git/plain/your-privacy-blacklist.txt"
+# EMULATOR_BLACKLIST="https://git.parabola.nu/blacklist.git/plain/your-freedom_emu-blacklist.txt"
+
+# A whitelist of GNU approved (free) software could be found here:
+#+ http://www.gnu.org/software/
+
+# A list of free software ordered by categories is available at:
+#+ http://directory.fsf.org/wiki/Main_Page
+
 LIBRE_REPO="http://mirror.fsf.org/parabola/libre/os/$(uname -m)/libre.db"
 
 # NOTE: About the blacklists syntax:
@@ -108,14 +102,14 @@ LANG=C
 
 ################################
 
-function echoerr ()
+echoerr ()
 {
 	echo -e "$@" >&2
 }
 
 ################################
 
-function show_help ()
+show_help ()
 {
 	echo -e "$ME is fundamentally aimed to find out whether there is \
 non-free/libre software installed in your Arch Linux system. When non-free \
@@ -158,7 +152,7 @@ themselves free according to RMS definition of free-software \
 
 ################################
 
-function show_version ()
+show_version ()
 {
 	echo -e "$ME $VERSION ($DATE), by $AUTHOR
 License: $LICENSE
@@ -167,7 +161,7 @@ Website: $WEBSITE"
 
 ################################
 
-function free_soft ()
+free_soft ()
 {
 	echo -e "Excerpt from $nc${bold}'What is Free Software?'$nc (by Richard \
 Stallman)
@@ -209,7 +203,7 @@ being free, we consider them all equally unethical (...)\n"
 
 ################################
 
-function get_blacklist ()
+get_blacklist ()
 {
 	if [[ -f "$tmp_file" ]]; then
 		# If the blacklist file exists and it was last modified one
@@ -264,7 +258,7 @@ function get_blacklist ()
 
 ################################
 
-function parabola_repo_download ()
+parabola_repo_download ()
 {
 	if [[ -f "/tmp/libre_repo_pkgs" ]]; then
 		# If the pkgs list file exists and it was last modified one
@@ -318,7 +312,7 @@ function parabola_repo_download ()
 
 ################################
 
-function blacklist_line ()
+blacklist_line ()
 {
 	local pack="$1" counter="$2" bl_line=""
 
@@ -365,7 +359,7 @@ function blacklist_line ()
 	fi
 }
 
-function extra_alternatives ()
+extra_alternatives ()
 {
 	local alternative_b=""
 	declare -r pkg="$1"
@@ -403,7 +397,7 @@ function extra_alternatives ()
 
 ################################
 
-function free_alternative ()
+free_alternative ()
 {
 	local pack="$1" alternative=""
 
@@ -436,7 +430,7 @@ function free_alternative ()
 
 ################################
 
-function color_codes ()
+color_codes ()
 {
 	local nonfree=$1 semifree=$2 technical=$3 fix_doc=$4 no_desc=$5
 
@@ -474,7 +468,7 @@ function color_codes ()
 
 ################################
 
-function check_native ()
+check_native ()
 {
 	# NOTE: native does not mean official, but installed from a repo
 	#+ enabled in pacman.conf (be it official or not)
@@ -588,7 +582,7 @@ function check_native ()
 
 ################################
 
-function check_aur ()
+check_aur ()
 {
 	tmp_file="/tmp/parabola_bl_aur_full"
 
@@ -641,7 +635,7 @@ function check_aur ()
 
 ################################
 
-function check_repo ()
+check_repo ()
 {
 	if [[ -z $1 ]]; then
 		echoerr "${ME,,}: You must specify a repository\nUsage: ${ME,,} -r" \
@@ -768,7 +762,7 @@ function check_repo ()
 
 ################################
 
-function check_privacy ()
+check_privacy ()
 {
 	tmp_file="/tmp/parabola_bl_privacy"
 
@@ -814,7 +808,7 @@ function check_privacy ()
 
 ################################
 
-function check_init ()
+check_init ()
 {
 	echo -ne "$blue::$nc$bold Checking init system...$nc "
 
@@ -880,7 +874,7 @@ function check_init ()
 
 ################################
 
-function list_systemd ()
+list_systemd ()
 {
 	local repos=() sysd_all=()
 	mapfile -t repos < <(/usr/bin/grep "^\[" /etc/pacman.conf \
@@ -902,7 +896,7 @@ function list_systemd ()
 
 ################################
 
-function list_official ()
+list_official ()
 {
 	tmp_file="/tmp/parabola_bl_official_full"
 
@@ -946,7 +940,7 @@ function list_official ()
 
 ################################
 
-function list_aur ()
+list_aur ()
 {
 	tmp_file="/tmp/parabola_bl_aur_full"
 
@@ -990,7 +984,7 @@ function list_aur ()
 
 ################################
 
-function list_privacy ()
+list_privacy ()
 {
 	tmp_file="/tmp/parabola_bl_privacy"
 
@@ -1025,7 +1019,7 @@ function list_privacy ()
 
 ################################
 
-function check_pkg ()
+check_pkg ()
 {
 	local packs=( "$@" ) replacement_counter=0
 
@@ -1131,14 +1125,15 @@ function check_pkg ()
 #	/usr/bin/rm -rf /tmp/libre
 }
 
+##############################################################################
 
-					#####################
-					#       MAIN        #
-					#####################
+						#####################
+						#       MAIN        #
+						#####################
 
-################################
+##############################################################################
 
-function main ()
+main ()
 {
 	full_bl=0; nocolor=1 #; tab=""
 
