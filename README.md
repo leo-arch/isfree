@@ -17,7 +17,9 @@ Update: Last version includes an option (-i) to check your system for systemd de
 
 ## Installation
 
-Clone the project, cd into the isfree directory, compile and install with `makepkg`, and finally run the program:
+Install it from the AUR: https://aur.archlinux.org/packages/isfree
+
+Or, clone the project, cd into the isfree directory, compile and install with `makepkg`, and finally run the program:
 
 	git clone https://github.com/leo-arch/isfree
 	cd isfree
