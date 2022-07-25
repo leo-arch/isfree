@@ -1,7 +1,7 @@
 # IsFree
 > FREELY making Arch Linux more free
 
-[![isfree](https://img.shields.io/aur/version/isfree?color=1793d1&label=isfree&logo=arch-linux&style=for-the-badge)](https://aur.archlinux.org/packages/isfree/)
+[![AUR version](https://img.shields.io/aur/version/isfree?label=isfree&logo=archlinux&style=for-the-badge)](https://aur.archlinux.org/packages/isfree/)
 [![License](https://img.shields.io/github/license/leo-arch/isfree?color=333333&style=for-the-badge)](https://github.com/leo-arch/isfree/blob/master/LICENSE)
 
 ---
