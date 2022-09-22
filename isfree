@@ -119,7 +119,7 @@ show the package version as well. Secondly, $ME can also check your \
 system for systemd and systemd dependencies, supporting thus the so-called \
 'init freedom'.
 Exception made of the init checks, all the the tests are based on \
-Parabola's blacklists, which can be found in the following URL's: 
+Parabola's blacklists, which can be found in the following URL's:
 - https://git.parabola.nu/blacklist.git/plain/blacklist.txt (blacklisted \
 official Arch packages)
 - https://git.parabola.nu/blacklist.git/plain/aur-blacklist.txt \
@@ -285,7 +285,7 @@ parabola_repo_download ()
 	echo -ne "$blue::$nc$bold Downloading Parabola's repository" \
 			 "database...$nc "
 
-	if ! [[ "$(type -P /usr/bin/wget)" ]]; then 
+	if ! [[ "$(type -P /usr/bin/wget)" ]]; then
 		echoerr "\n${ME,,}: 'wget': Command not found"
 		exit $ERROR
 	fi
@@ -334,7 +334,7 @@ blacklist_line ()
 	desc="$(echo "$bl_line" | cut -d":" -f 5-10)"
 
 	case "$desc" in
-	
+
 		*\[technical\]*|*\[branding\]*)
 			echo -ne "$white$counter$nc) $green$pack: $nc" \
 			&& (( technical++ ))
@@ -360,7 +360,7 @@ blacklist_line ()
 			&& (( no_desc++ ))
 		;;
 
-		*) 
+		*)
 			echo -ne "$white$counter$nc) $cyan$pack: $nc" \
 			&& (( no_tag++ ))
 		;;
@@ -471,7 +471,7 @@ color_codes ()
 	if [[ $technical -gt 0 ]]; then
 		echo -e "${green}Green:$nc It IS by" \
 				"itself free, but has some technical," \
-				"branding or trademarkig issue, or" \
+				"branding or trademarking issue, or" \
 				"simply points somehow to non-free" \
 				"software ($technical)."
 	fi
@@ -528,7 +528,7 @@ check_native ()
 
 	echo -e "${green}OK$nc"
 
-	echo -e "Non-free installed native packages:$nc\n" 
+	echo -e "Non-free installed native packages:$nc\n"
 
 	local counter=0
 
@@ -957,7 +957,7 @@ list_official ()
 		echo -e "$yellow$((counter+1))$nc) $cyan$pkg: $nc$desc"
 
 		if [[ -n $alt ]]; then
-			echo -e "$nc${bold}Free alternative:$nc $alt" 
+			echo -e "$nc${bold}Free alternative:$nc $alt"
 		fi
 
 		counter=$((counter+1))
@@ -1212,7 +1212,7 @@ main ()
 				#+ to the corresponding option, here -s. However, since
 				#+ we need to check here multiple arguments, we move on
 				#+ to the next argument (with shift), and then pass
-				#+ everything else to our function. 
+				#+ everything else to our function.
 				shift
 				check_pkg "$@" ;;
 			t) full_bl=1 ;;
